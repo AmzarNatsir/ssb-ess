@@ -21,7 +21,7 @@
             <div>
                 <!-- Logo Normal -->
                 <a href="{{url('index')}}" class="logo logo-normal">
-                    <img src="{{URL::asset('build/img/logo.svg')}}" alt="Logo">
+                    <img src="{{URL::asset('assets/logo_perusahaan/logo_ssb.png')}}" style="width: 160px; height: auto;" alt="Logo">
                 </a>
 
                 <!-- Logo Small -->
@@ -73,8 +73,8 @@
                             <li class="{{ Request::is('memorandum*') ? 'active' : '' }}">
                                 <a href="{{ route('memorandum.index') }}"><i class="ti ti-atom-2"></i><span>Memorandum</span></a>
                             </li>
-                            <li class="{{ Request::is('tasks', 'tasks-completed', 'tasks-important') ? 'active' : '' }}">
-                                <a href="{{url('tasks')}}"><i class="ti ti-list-check"></i><span>Training</span></a>
+                            <li class="{{ Request::is('training*') ? 'active' : '' }}">
+                                <a href="{{ route('training.index') }}"><i class="ti ti-list-check"></i><span>Training</span></a>
                             </li>
                             <li class="{{ Request::is('proposals', 'proposals-list', 'proposal-details') ? 'active' : '' }}">
                                 <a href="{{url('proposals')}}"><i class="ti ti-file-star"></i><span>Employee loans</span></a>

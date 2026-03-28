@@ -661,6 +661,13 @@ Route::middleware('auth')->group(function () {
     })->name('layout-rtl');
 
     Route::get('/memorandum', [\App\Http\Controllers\MemorandumController::class, 'index'])->name('memorandum.index');
+    Route::get('/memorandum/print-sp/{id}', [\App\Http\Controllers\MemorandumController::class, 'print_sp'])->name('memorandum.print_sp');
+    Route::get('/memorandum/verify/{type}/{id}', [\App\Http\Controllers\MemorandumController::class, 'verify'])->name('memorandum.verify');
+    Route::get('/memorandum/st-detail/{id}', [\App\Http\Controllers\MemorandumController::class, 'st_detail'])->name('memorandum.st_detail');
+    Route::get('/memorandum/print-st/{id}', [\App\Http\Controllers\MemorandumController::class, 'print_st'])->name('memorandum.print_st');
+    Route::get('/training', [\App\Http\Controllers\TrainingController::class, 'index'])->name('training.index');
+    Route::get('/training/{id}/detail', [\App\Http\Controllers\TrainingController::class, 'detail'])->name('training.detail');
+    Route::post('/training/{id}/report', [\App\Http\Controllers\TrainingController::class, 'submitReport'])->name('training.report');
 });
 
 
