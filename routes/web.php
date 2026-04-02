@@ -668,6 +668,32 @@ Route::middleware('auth')->group(function () {
     Route::get('/training', [\App\Http\Controllers\TrainingController::class, 'index'])->name('training.index');
     Route::get('/training/{id}/detail', [\App\Http\Controllers\TrainingController::class, 'detail'])->name('training.detail');
     Route::post('/training/{id}/report', [\App\Http\Controllers\TrainingController::class, 'submitReport'])->name('training.report');
+    Route::get('/training/{id}/get-report', [\App\Http\Controllers\TrainingController::class, 'getReport'])->name('training.get_report');
+
+    // Pinjaman Karyawan
+    Route::get('/pinjaman',               [\App\Http\Controllers\PinjamanController::class, 'index'])->name('pinjaman.index');
+    Route::get('/pinjaman/create',        [\App\Http\Controllers\PinjamanController::class, 'create'])->name('pinjaman.create');
+    Route::post('/pinjaman',              [\App\Http\Controllers\PinjamanController::class, 'store'])->name('pinjaman.store');
+    Route::post('/pinjaman/{id}/cancel',  [\App\Http\Controllers\PinjamanController::class, 'cancel'])->name('pinjaman.cancel');
+    Route::get('/pinjaman/{id}/detail',   [\App\Http\Controllers\PinjamanController::class, 'detail'])->name('pinjaman.detail');
+    Route::get('/pinjaman/gaji-info',     [\App\Http\Controllers\PinjamanController::class, 'gajiInfo'])->name('pinjaman.gaji_info');
+
+    // Resign
+    Route::get('/resign',                 [\App\Http\Controllers\ResignController::class, 'index'])->name('resign.index');
+    Route::get('/resign/create',          [\App\Http\Controllers\ResignController::class, 'create'])->name('resign.create');
+    Route::post('/resign',                [\App\Http\Controllers\ResignController::class, 'store'])->name('resign.store');
+    Route::get('/resign/{id}/edit',       [\App\Http\Controllers\ResignController::class, 'edit'])->name('resign.edit');
+    Route::put('/resign/{id}',            [\App\Http\Controllers\ResignController::class, 'update'])->name('resign.update');
+    Route::post('/resign/{id}/cancel',    [\App\Http\Controllers\ResignController::class, 'cancel'])->name('resign.cancel');
+    Route::get('/resign/{id}/detail',     [\App\Http\Controllers\ResignController::class, 'detail'])->name('resign.detail');
+
+    // Exit Interview
+    Route::get('/exit-interview/{id_resign}/create', [\App\Http\Controllers\ExitInterviewController::class, 'create'])->name('exit-interview.create');
+    Route::post('/exit-interview',                   [\App\Http\Controllers\ExitInterviewController::class, 'store'])->name('exit-interview.store');
+    Route::get('/exit-interview/{id}/edit',          [\App\Http\Controllers\ExitInterviewController::class, 'edit'])->name('exit-interview.edit');
+    Route::put('/exit-interview/{id}',               [\App\Http\Controllers\ExitInterviewController::class, 'update'])->name('exit-interview.update');
+    Route::post('/exit-interview/{id}/cancel',       [\App\Http\Controllers\ExitInterviewController::class, 'cancel'])->name('exit-interview.cancel');
+    Route::get('/exit-interview/{id}/detail',        [\App\Http\Controllers\ExitInterviewController::class, 'detail'])->name('exit-interview.detail');
 });
 
 

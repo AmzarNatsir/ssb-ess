@@ -99,8 +99,26 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Evidence (Bukti)</label>
-                        <input type="file" class="form-control" name="evidence_pasca" accept=".pdf,.png,.jpg,.jpeg">
-                        <small class="text-muted">Format yang diizinkan: PDF, PNG, JPG. Maks 2MB.</small>
+                        <!-- Preview for existing evidence -->
+                        <div id="existingEvidencePreview" class="mb-2" style="display:none;">
+                            <div class="d-flex align-items-center gap-2 p-2 bg-light rounded border">
+                                <i class="ti ti-photo text-success fs-18" id="evidenceIcon"></i>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">File yang tersimpan:</small>
+                                    <a id="evidenceLink" href="#" target="_blank" class="fw-semibold small text-primary">Lihat File</a>
+                                </div>
+                            </div>
+                            <div id="evidenceImagePreview" class="mt-2" style="display:none;">
+                                <img id="evidenceImageTag" src="" alt="Evidence Preview" class="img-fluid rounded border" style="max-height:200px; object-fit:contain;">
+                            </div>
+
+                        </div>
+                        <input type="file" class="form-control" name="evidence_pasca" id="evidenceFileInput" accept=".pdf,.png,.jpg,.jpeg">
+                        <small class="text-muted">Format yang diizinkan: PDF, PNG, JPG. Maks 2MB. Kosongkan jika tidak ingin mengubah file.</small>
+                        <!-- Preview for newly selected file -->
+                        <div id="newEvidencePreview" class="mt-2" style="display:none;">
+                            <img id="newEvidenceImageTag" src="" alt="Preview" class="img-fluid rounded border" style="max-height:180px; object-fit:contain;">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -111,6 +129,10 @@
         </div>
     </div>
 </div>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" style="position:fixed; top:20px; right:20px; z-index:9999; min-width:300px;"></div>
+
 @endsection
 
 @section('scripts')
@@ -239,13 +261,89 @@ $(document).ready(function() {
         });
     });
 
-    // Handle Report Button Click
+    // Handle Report Button Click — fetch existing data first
     $(document).on('click', '.btn-report-training', function() {
         const id = $(this).data('id');
         $('#report_training_id').val(id);
+        // Reset form and preview areas
         $('#formReportTraining')[0].reset();
+        $('#existingEvidencePreview').hide();
+        $('#evidenceImagePreview').hide();
+        $('#newEvidencePreview').hide();
+
         $('#modalReportTraining').modal('show');
+
+        // Fetch existing report data
+        $.ajax({
+            url: `{{ url('/training') }}/${id}/get-report`,
+            method: 'GET',
+            success: function(response) {
+                if (response.success && response.has_report && response.data) {
+                    const d = response.data;
+                    // Pre-fill text fields
+                    $('[name="tujuan_pelatihan_pasca"]').val(d.tujuan_pelatihan_pasca || '');
+                    $('[name="uraian_materi_pasca"]').val(d.uraian_materi_pasca || '');
+                    $('[name="tindak_lanjut_pasca"]').val(d.tindak_lanjut_pasca || '');
+                    $('[name="dampak_pasca"]').val(d.dampak_pasca || '');
+                    $('[name="penutup_pasca"]').val(d.penutup_pasca || '');
+
+                    // Show evidence preview if file exists
+                    if (d.evidence_url) {
+                        $('#evidenceLink').attr('href', d.evidence_url);
+                        $('#existingEvidencePreview').show();
+                        if (d.is_image) {
+                            $('#evidenceImageTag').attr('src', d.evidence_url);
+                            $('#evidenceIcon').attr('class', 'ti ti-photo text-success fs-18');
+                            $('#evidenceImagePreview').show();
+                        } else {
+                            $('#evidenceIcon').attr('class', 'ti ti-file-type-pdf text-danger fs-18');
+                            $('#evidenceImagePreview').hide();
+                        }
+                    }
+                }
+            }
+        });
     });
+
+    // Preview newly selected image file
+    $(document).on('change', '#evidenceFileInput', function() {
+        const file = this.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#newEvidenceImageTag').attr('src', e.target.result);
+                $('#newEvidencePreview').show();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            $('#newEvidencePreview').hide();
+        }
+    });
+
+
+    // ── Toast Helper ─────────────────────────────────────────────
+    function showToast(message, type) {
+        type = type || 'success';
+        const colors = {
+            success: { bg: '#198754', icon: 'ti-circle-check' },
+            danger:  { bg: '#dc3545', icon: 'ti-circle-x' },
+            warning: { bg: '#ffc107', icon: 'ti-alert-triangle' },
+        };
+        const c = colors[type] || colors.success;
+        const id = 'toast_' + Date.now();
+        const autoHide = (type === 'success');
+        const html = `
+            <div id="${id}" class="d-flex align-items-center text-white rounded shadow-lg mb-2 px-3 py-3"
+                 style="background:${c.bg}; animation: slideInRight .3s ease; min-width:280px;">
+                <i class="ti ${c.icon} fs-20 me-3 flex-shrink-0"></i>
+                <div class="flex-grow-1 fw-semibold" style="font-size:.93rem;">${message}</div>
+                <button type="button" class="btn-close btn-close-white ms-3 flex-shrink-0" onclick="document.getElementById('${id}').remove()" style="filter:brightness(2);"></button>
+            </div>`;
+        $('#toastContainer').prepend(html);
+        if (autoHide) {
+            setTimeout(function() { $('#' + id).fadeOut(400, function() { $(this).remove(); }); }, 3000);
+        }
+    }
 
     // Handle Report Form Submit
     $('#formReportTraining').on('submit', function(e) {
@@ -264,42 +362,29 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(response) {
+                btn.prop('disabled', false).html('Simpan Laporan');
                 if (response.success) {
                     $('#modalReportTraining').modal('hide');
-                    if(typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil!',
-                            text: response.message,
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        alert(response.message);
-                        location.reload();
-                    }
+                    showToast(response.message || 'Laporan berhasil disimpan.', 'success');
+                    setTimeout(function() { location.reload(); }, 2000);
                 } else {
-                    btn.prop('disabled', false).html('Simpan Laporan');
-                    if(typeof Swal !== 'undefined') {
-                        Swal.fire('Gagal', response.message || 'Terjadi kesalahan.', 'error');
-                    } else {
-                        alert('Gagal: ' + (response.message || 'Terjadi kesalahan.'));
-                    }
+                    showToast(response.message || 'Terjadi kesalahan saat menyimpan.', 'danger');
                 }
             },
             error: function(xhr, status, error) {
                 console.error('AJAX Error:', error);
                 btn.prop('disabled', false).html('Simpan Laporan');
-                if(typeof Swal !== 'undefined') {
-                    Swal.fire('Error', 'Terjadi kesalahan koneksi atau server.', 'error');
-                } else {
-                    alert('Error: Terjadi kesalahan koneksi atau server.');
-                }
+                showToast('Terjadi kesalahan koneksi atau server.', 'danger');
             }
         });
     });
 });
 </script>
+
+<style>
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(60px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+</style>
 @endsection

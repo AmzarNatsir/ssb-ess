@@ -76,14 +76,14 @@
                             <li class="{{ Request::is('training*') ? 'active' : '' }}">
                                 <a href="{{ route('training.index') }}"><i class="ti ti-list-check"></i><span>Training</span></a>
                             </li>
-                            <li class="{{ Request::is('proposals', 'proposals-list', 'proposal-details') ? 'active' : '' }}">
-                                <a href="{{url('proposals')}}"><i class="ti ti-file-star"></i><span>Employee loans</span></a>
+                            <li class="{{ Request::is('pinjaman', 'pinjaman/*') ? 'active' : '' }}">
+                                <a href="{{ route('pinjaman.index') }}"><i class="ti ti-file-dollar"></i><span>Employee Loans</span></a>
                             </li>
                             <li class="{{ Request::is('contracts', 'contracts-list', 'contract-details') ? 'active' : '' }}">
                                 <a href="{{url('contracts')}}"><i class="ti ti-file-check"></i><span>Payroll</span></a>
                             </li>
-                            <li class="{{ Request::is('estimations', 'estimations-list', 'estimation-details') ? 'active' : '' }}">
-                                <a href="{{url('estimations')}}"><i class="ti ti-file-report"></i><span>Resign</span></a>
+                            <li class="{{ Request::is('resign', 'resign/*') ? 'active' : '' }}">
+                                <a href="{{ route('resign.index') }}"><i class="ti ti-file-report"></i><span>Resign</span></a>
                             </li>
                         </ul>
                     </li>
