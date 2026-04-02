@@ -31,6 +31,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
+        @php
+            $isProcessingByHrd = $resigns->contains(function($r) {
+                return $r->sts_pengajuan == 2 && ($r->exitInterview && $r->exitInterview->sts_pengajuan == 2);
+            });
+        @endphp
+
+        @if($isProcessingByHrd)
+            <div class="alert alert-info border-start border-4 border-info shadow-sm mb-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="ti ti-info-circle-filled me-2 fs-3"></i>
+                    <div>
+                        <h6 class="alert-heading mb-1 fw-bold">Informasi Pengajuan</h6>
+                        <p class="mb-0 small">Pengajuan resign anda saat sedang di proses oleh Admin HRD.</p>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div class="row">
             @forelse($resigns as $resign)
