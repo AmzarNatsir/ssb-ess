@@ -2,6 +2,7 @@
 namespace App\Helpers;
 use App\Models\RefApprovalDetail;
 use App\Models\ProfilPerusahaan;
+use App\Models\PinjamanKaryawanMutasi;
 
 class HrdFunction
 {
@@ -48,5 +49,27 @@ class HrdFunction
             '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
         ];
         return $nama_bulan[$bulan] ?? '';
+    }
+
+    public static function generate_duedate_pinjaman_karyawan($id_head, $tgl_bayar)
+    {
+        $arr_tgl_bayar = explode("-", $tgl_bayar);
+        $tgl_1 = $arr_tgl_bayar[2];
+        $bln_1 = $arr_tgl_bayar[1];
+        $thn_1 = $arr_tgl_bayar[0];
+
+        if($bln_1==12) {
+            $bln_baru = "01";
+            $thn_baru = $thn_1 + 1;
+        } else {
+            $bln_baru = $bln_1 + 1;
+            $thn_baru = $thn_1;
+        }
+        $tgl_jatuh_tempo = $thn_baru."-".$bln_baru."-".$tgl_1;
+
+        $resData = PinjamanKaryawanMutasi::where('id_head', $id_head)->where('bayar_aktif', 1)->first();
+        PinjamanKaryawanMutasi::find($resData->id)->update([
+            "tanggal" => $tgl_jatuh_tempo
+        ]);
     }
 }

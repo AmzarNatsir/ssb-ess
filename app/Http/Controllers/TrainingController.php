@@ -89,6 +89,45 @@ class TrainingController extends Controller
     }
 
     /**
+     * Get existing post-training report data.
+     */
+    public function getReport($id)
+    {
+        try {
+            $user = Auth::user();
+            $karyawan = $user->karyawan;
+
+            $detail = TrainingDetail::where('id_head', $id)
+                ->where('id_karyawan', $karyawan->id)
+                ->firstOrFail();
+
+            $evidenceUrl = null;
+            $isImage = false;
+            if ($detail->evidence_pasca && file_exists(public_path($detail->evidence_pasca))) {
+                $evidenceUrl = asset($detail->evidence_pasca);
+                $ext = strtolower(pathinfo($detail->evidence_pasca, PATHINFO_EXTENSION));
+                $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'has_report' => !empty($detail->pasca) && $detail->pasca == 1,
+                'data' => [
+                    'tujuan_pelatihan_pasca'  => $detail->tujuan_pelatihan_pasca,
+                    'uraian_materi_pasca'     => $detail->uraian_materi_pasca,
+                    'tindak_lanjut_pasca'     => $detail->tindak_lanjut_pasca,
+                    'dampak_pasca'            => $detail->dampak_pasca,
+                    'penutup_pasca'           => $detail->penutup_pasca,
+                    'evidence_url'            => $evidenceUrl,
+                    'is_image'                => $isImage,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Submit post-training report.
      */
     public function submitReport(Request $request, $id)
