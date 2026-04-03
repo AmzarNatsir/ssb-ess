@@ -694,6 +694,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/exit-interview/{id}',               [\App\Http\Controllers\ExitInterviewController::class, 'update'])->name('exit-interview.update');
     Route::post('/exit-interview/{id}/cancel',       [\App\Http\Controllers\ExitInterviewController::class, 'cancel'])->name('exit-interview.cancel');
     Route::get('/exit-interview/{id}/detail',        [\App\Http\Controllers\ExitInterviewController::class, 'detail'])->name('exit-interview.detail');
+
+    // Payroll
+    Route::get('/payroll', [\App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
+    Route::get('/payroll/{id}/detail', [\App\Http\Controllers\PayrollController::class, 'show'])->name('payroll.show');
+    Route::get('/payroll/{id}/print', [\App\Http\Controllers\PayrollController::class, 'print'])->name('payroll.print');
 });
 
 

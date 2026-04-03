@@ -28,8 +28,8 @@ class HrdFunction
     {
         $result = ProfilPerusahaan::first();
         $logo = "";
-        if($result) {
-            if(!empty($result->logo_perusahaan)) {
+        if ($result) {
+            if (!empty($result->logo_perusahaan)) {
                 $logo = $result->logo_perusahaan;
             }
         }
@@ -44,9 +44,18 @@ class HrdFunction
     public static function get_nama_bulan($bulan)
     {
         $nama_bulan = [
-            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
-            '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
-            '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+            '01' => 'Januari',
+            '02' => 'Februari',
+            '03' => 'Maret',
+            '04' => 'April',
+            '05' => 'Mei',
+            '06' => 'Juni',
+            '07' => 'Juli',
+            '08' => 'Agustus',
+            '09' => 'September',
+            '10' => 'Oktober',
+            '11' => 'November',
+            '12' => 'Desember'
         ];
         return $nama_bulan[$bulan] ?? '';
     }
@@ -58,18 +67,62 @@ class HrdFunction
         $bln_1 = $arr_tgl_bayar[1];
         $thn_1 = $arr_tgl_bayar[0];
 
-        if($bln_1==12) {
+        if ($bln_1 == 12) {
             $bln_baru = "01";
             $thn_baru = $thn_1 + 1;
         } else {
             $bln_baru = $bln_1 + 1;
             $thn_baru = $thn_1;
         }
-        $tgl_jatuh_tempo = $thn_baru."-".$bln_baru."-".$tgl_1;
+        $tgl_jatuh_tempo = $thn_baru . "-" . $bln_baru . "-" . $tgl_1;
 
         $resData = PinjamanKaryawanMutasi::where('id_head', $id_head)->where('bayar_aktif', 1)->first();
         PinjamanKaryawanMutasi::find($resData->id)->update([
             "tanggal" => $tgl_jatuh_tempo
         ]);
+    }
+
+    public static function terbilang($nilai)
+    {
+        $angka = abs((int) $nilai);
+        $huruf = [
+            "",
+            "Satu",
+            "Dua",
+            "Tiga",
+            "Empat",
+            "Lima",
+            "Enam",
+            "Tujuh",
+            "Delapan",
+            "Sembilan",
+            "Sepuluh",
+            "Sebelas"
+        ];
+
+        $temp = "";
+        if ($angka < 12) {
+            $temp = " " . $huruf[$angka];
+        } else if ($angka < 20) {
+            $temp = self::terbilang($angka - 10) . " Belas";
+        } else if ($angka < 100) {
+            $temp = self::terbilang(intval($angka / 10)) . " Puluh " . self::terbilang($angka % 10);
+        } else if ($angka < 200) {
+            $temp = " Seratus " . self::terbilang($angka - 100);
+        } else if ($angka < 1000) {
+            $temp = self::terbilang(intval($angka / 100)) . " Ratus " . self::terbilang($angka % 100);
+        } else if ($angka < 2000) {
+            $temp = " Seribu " . self::terbilang($angka - 1000);
+        } else if ($angka < 1000000) {
+            $temp = self::terbilang(intval($angka / 1000)) . " Ribu " . self::terbilang($angka % 1000);
+        } else if ($angka < 1000000000) {
+            $temp = self::terbilang(intval($angka / 1000000)) . " Juta " . self::terbilang($angka % 1000000);
+        } else if ($angka < 1000000000000) {
+            $temp = self::terbilang(intval($angka / 1000000000)) . " Miliar " . self::terbilang($angka % 1000000000);
+        } else if ($angka < 1000000000000000) {
+            $temp = self::terbilang(intval($angka / 1000000000000)) . " Triliun " . self::terbilang($angka % 1000000000000);
+        }
+
+        return trim($temp);
     }
 }

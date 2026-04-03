@@ -79,8 +79,8 @@
                             <li class="{{ Request::is('pinjaman', 'pinjaman/*') ? 'active' : '' }}">
                                 <a href="{{ route('pinjaman.index') }}"><i class="ti ti-file-dollar"></i><span>Employee Loans</span></a>
                             </li>
-                            <li class="{{ Request::is('contracts', 'contracts-list', 'contract-details') ? 'active' : '' }}">
-                                <a href="{{url('contracts')}}"><i class="ti ti-file-check"></i><span>Payroll</span></a>
+                            <li class="{{ Request::is('payroll*') ? 'active' : '' }}">
+                                <a href="{{ route('payroll.index') }}"><i class="ti ti-file-check"></i><span>Payroll</span></a>
                             </li>
                             <li class="{{ Request::is('resign', 'resign/*') ? 'active' : '' }}">
                                 <a href="{{ route('resign.index') }}"><i class="ti ti-file-report"></i><span>Resign</span></a>
