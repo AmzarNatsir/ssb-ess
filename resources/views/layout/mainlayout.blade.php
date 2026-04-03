@@ -43,7 +43,7 @@
 <body class="comming-soon">
 @endif
 
-@if (Route::is(['email-verification', 'forgot-password', 'register', 'reset-password', 'success', 'two-step-verification']))
+@if (Route::is(['email-verification', 'forgot-password', 'register', 'reset-password', 'success', 'two-step-verification', 'password.change']))
 <body class="account-page">
 @endif
 
@@ -54,7 +54,7 @@
     <!-- Start Main Wrapper -->
     <div class="main-wrapper">
 
-    @if (!Route::is(['login', 'register', 'forgot-password','reset-password', 'success', 'email-verification', 'two-step-verification', 'lock-screen', 'error-404', 'error-500', 'coming-soon', 'under-maintenance']))
+    @if (!Route::is(['login', 'register', 'forgot-password','reset-password', 'success', 'email-verification', 'two-step-verification', 'lock-screen', 'error-404', 'error-500', 'coming-soon', 'under-maintenance', 'password.change']))
         @include('layout.partials.header')
 
         @include('layout.partials.sidebar')

@@ -21,6 +21,7 @@ class User extends Authenticatable
         'nik',
         'email',
         'password',
+        'must_change_password'
     ];
 
     /**
