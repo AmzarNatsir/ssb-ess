@@ -18,13 +18,8 @@ Route::middleware(['auth', 'must_change_password'])->group(function () {
     Route::get('/change-password', [AuthController::class, 'showChangePasswordForm'])->name('password.change');
     Route::post('/change-password', [AuthController::class, 'updatePassword'])->name('password.update');
 
-    Route::get('/', function () {
-        return view('index');
-    })->name('home');
-
-    Route::get('/index', function () {
-        return view('index');
-    })->name('home');
+    Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    Route::get('/index', [\App\Http\Controllers\HomeController::class, 'index']);
 
     Route::get('/my-profile', [ProfileController::class, 'show'])->name('my-profile');
     Route::get('/leave', [\App\Http\Controllers\LeaveController::class, 'index'])->name('leave.index');
