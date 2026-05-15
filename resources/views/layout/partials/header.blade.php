@@ -89,16 +89,24 @@
             <div class="dropdown profile-dropdown d-flex align-items-center justify-content-center">
                 <a href="javascript:void(0);" class="topbar-link dropdown-toggle drop-arrow-none position-relative"
                     data-bs-toggle="dropdown" data-bs-offset="0,22" aria-haspopup="false" aria-expanded="false">
-                    <img src="{{URL::asset('build/img/users/user-40.jpg')}}" width="38" class="rounded-1 d-flex"
-                        alt="user-image">
+                    @if(Auth::user()->karyawan->photo)
+                        <img src="{{ Auth::user()->karyawan->photo_url }}" width="38" height="38" class="rounded-1 d-flex" alt="user-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    @endif
+                    <span class="avatar avatar-sm avatar-rounded bg-primary text-white {{ Auth::user()->karyawan->photo ? '' : 'd-flex' }}" style="{{ Auth::user()->karyawan->photo ? 'display:none;' : '' }}">
+                        {{ Auth::user()->karyawan->initials }}
+                    </span>
                     <span class="online text-success"><i
                             class="ti ti-circle-filled d-flex bg-white rounded-circle border border-1 border-white"></i></span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-md p-2">
 
                     <div class="d-flex align-items-center bg-light rounded-3 p-2 mb-2">
-                        <img src="{{URL::asset('build/img/users/user-40.jpg')}}" class="rounded-circle" width="42"
-                            height="42" alt="">
+                        @if(Auth::user()->karyawan->photo)
+                            <img src="{{ Auth::user()->karyawan->photo_url }}" class="rounded-circle" width="42" height="42" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        @endif
+                        <span class="avatar avatar-md avatar-rounded bg-primary text-white {{ Auth::user()->karyawan->photo ? '' : 'd-flex' }}" style="{{ Auth::user()->karyawan->photo ? 'display:none;' : '' }}">
+                            {{ Auth::user()->karyawan->initials }}
+                        </span>
                         <div class="ms-2">
                             <p class="fw-medium text-dark mb-0 text-capitalize">
                                 {{ Auth::user()->karyawan->nm_lengkap ?? Auth::user()->nik }}

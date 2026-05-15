@@ -51,7 +51,7 @@
                                      data-judul="{{ $memo->judul }}"
                                      data-tgl="{{ $memo->tgl_post ? $memo->tgl_post->format('d F Y') : '-' }}"
                                      data-deskripsi="{{ $memo->deskripsi }}"
-                                     data-file="{{ $memo->file_memo ? asset('storage/' . $memo->file_memo) : '' }}"
+                                     data-file="{{ $memo->file_url ?? '' }}"
                                      style="cursor:pointer;">
                                     <div class="avatar avatar-sm bg-primary-subtle text-primary rounded flex-shrink-0">
                                         <i class="ti ti-file-text"></i>
@@ -123,16 +123,14 @@
                                         @foreach($birthdayKaryawan as $index => $karyawan)
                                             <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
                                                 <div class="text-center px-4 py-2">
-                                                    @php
-                                                        $photoPath = $karyawan->photo
-                                                            ? asset('storage/' . $karyawan->photo)
-                                                            : asset('assets/img/profiles/avatar-02.jpg');
-                                                    @endphp
-                                                    <img src="{{ $photoPath }}"
-                                                         alt="{{ $karyawan->nm_lengkap }}"
-                                                         class="rounded-circle border border-3 border-warning shadow mb-3"
-                                                         style="width:90px; height:90px; object-fit:cover;"
-                                                         onerror="this.src='{{ asset('assets/img/profiles/avatar-02.jpg') }}'">
+                                                    <div class="avatar avatar-xxl avatar-rounded border border-3 border-warning shadow mb-3 mx-auto overflow-hidden d-flex align-items-center justify-content-center" style="width:90px; height:90px;">
+                                                        @if($karyawan->photo)
+                                                            <img src="{{ $karyawan->photo_url }}" alt="{{ $karyawan->nm_lengkap }}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                        @endif
+                                                        <span class="avatar-title bg-warning text-dark fs-20 {{ $karyawan->photo ? '' : 'd-flex' }}" style="{{ $karyawan->photo ? 'display:none;' : '' }}">
+                                                            {{ $karyawan->initials }}
+                                                        </span>
+                                                    </div>
                                                     <h6 class="mb-1 fw-bold">{{ $karyawan->nm_lengkap }}</h6>
                                                     <p class="text-muted small mb-1">
                                                         <i class="ti ti-id-badge me-1"></i>{{ $karyawan->nik ?? '-' }}

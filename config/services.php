@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'media' => [
+        'url' => env('URL_MEDIA'),
+        'token' => env('TOKEN_MEDIA'),
+    ],
+
 ];

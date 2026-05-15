@@ -53,4 +53,29 @@ class Karyawan extends Model
 
         return "{$diff->y} Year - {$diff->m} Month - {$diff->d} Day";
     }
+
+    public function getPhotoUrlAttribute()
+    {
+        if (!$this->photo) {
+            return asset('build/img/users/user-40.jpg');
+        }
+
+        return route('media.proxy', ['path' => $this->photo, 'type' => 'photo']);
+    }
+
+    public function getInitialsAttribute()
+    {
+        $name = $this->nm_lengkap;
+        if (!$name) return '?';
+
+        $words = explode(' ', $name);
+        $initials = '';
+        foreach ($words as $w) {
+            if (!empty($w)) {
+                $initials .= strtoupper(substr($w, 0, 1));
+            }
+            if (strlen($initials) >= 2) break;
+        }
+        return $initials;
+    }
 }

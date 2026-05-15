@@ -28,8 +28,13 @@
                     <div class="card overflow-hidden">
                         <div class="card-body p-0">
                             <div class="bg-primary pt-5 px-3 pb-3 text-center position-relative">
-                                <div class="avatar avatar-xxl avatar-rounded border border-4 border-white mx-auto mb-2 shadow-sm bg-white overflow-hidden">
-                                    <img src="{{URL::asset('build/img/users/user-40.jpg')}}" alt="user">
+                                <div class="avatar avatar-xxl avatar-rounded border border-4 border-white mx-auto mb-2 shadow-sm bg-white overflow-hidden d-flex align-items-center justify-content-center">
+                                    @if($karyawan->photo)
+                                        <img src="{{ $karyawan->photo_url }}" alt="user" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    @endif
+                                    <span class="avatar-title bg-primary text-white fs-24 {{ $karyawan->photo ? '' : 'd-flex' }}" style="{{ $karyawan->photo ? 'display:none;' : '' }}">
+                                        {{ $karyawan->initials }}
+                                    </span>
                                 </div>
                                 <h5 class="text-white mb-1 text-capitalize">{{ $karyawan->nm_lengkap ?? $user->nik }}</h5>
                                 <p class="text-white-50 mb-0 fs-13">{{ $karyawan->jabatan->nm_jabatan ?? 'Employee' }}</p>

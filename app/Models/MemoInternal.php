@@ -11,4 +11,13 @@ class MemoInternal extends Model
     protected $casts = [
         'tgl_post' => 'date',
     ];
+
+    public function getFileUrlAttribute()
+    {
+        if (!$this->file_memo) {
+            return null;
+        }
+
+        return route('media.proxy', ['path' => $this->file_memo]);
+    }
 }

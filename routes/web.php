@@ -102,4 +102,7 @@ Route::middleware(['auth', 'must_change_password'])->group(function () {
     Route::get('/payroll', [\App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
     Route::get('/payroll/{id}/detail', [\App\Http\Controllers\PayrollController::class, 'show'])->name('payroll.show');
     Route::get('/payroll/{id}/print', [\App\Http\Controllers\PayrollController::class, 'print'])->name('payroll.print');
+
+    // Media Proxy
+    Route::get('/media/proxy', [\App\Http\Controllers\MediaController::class, 'proxy'])->name('media.proxy');
 });
