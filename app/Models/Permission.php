@@ -16,6 +16,12 @@ class Permission extends Model
         return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
     }
 
+    // Legacy alias used by approval module/views.
+    public function profil_karyawan(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
+    }
+
     public function jenisPermission(): BelongsTo
     {
         return $this->belongsTo(JenisCuti::class, 'id_jenis_izin', 'id');

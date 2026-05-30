@@ -7,7 +7,7 @@
             <!-- Page Header -->
             <div class="d-flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
                 <div>
-                    <h4 class="mb-1">Apply Overtime</h4>
+                    <h4 class="mb-1">Pengajuan Lembur</h4>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0 p-0">
                             <li class="breadcrumb-item"><a href="{{ url('index') }}">Home</a></li>
@@ -17,7 +17,7 @@
                     </nav>
                 </div>
                 <a href="{{ route('overtime.index') }}" class="btn btn-secondary d-inline-flex align-items-center">
-                    <i class="ti ti-arrow-left me-1"></i>Back
+                    <i class="ti ti-arrow-left me-1"></i>Kembali
                 </a>
             </div>
 
@@ -42,69 +42,85 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="ti ti-clock-share me-2 text-primary"></i>Overtime Submission Form
+                        <i class="ti ti-clock-share me-2 text-primary"></i>Form Pengajuan Lembur
                     </h5>
                     <p class="text-muted small mt-1 mb-0">
-                        Minimum overtime: <strong>1 hour</strong> — Maximum overtime: <strong>8 hours</strong> per day.
+                        Minimal lembur: <strong>1 jam</strong> — Maksimal lembur: <strong>8 jam</strong> per hari.
                     </p>
                 </div>
                 <div class="card-body">
+                    @if(($isApprovalMatrixConfigured ?? false) === true)
+                        <div class="alert alert-success border-0 mb-3">
+                            <h6 class="alert-heading fw-semibold mb-1">
+                                <i class="ti ti-shield-check me-1"></i>Validasi Matriks Persetujuan
+                            </h6>
+                            <p class="small mb-0">Matriks persetujuan untuk pengajuan lembur sudah diatur. Pengajuan dapat dikirim.</p>
+                        </div>
+                    @else
+                        <div class="alert alert-danger border-0 mb-3">
+                            <h6 class="alert-heading fw-semibold mb-1">
+                                <i class="ti ti-alert-triangle me-1"></i>Validasi Matriks Persetujuan
+                            </h6>
+                            <p class="small mb-0">Matriks persetujuan untuk pengajuan lembur belum diatur. Tombol submit dikunci.</p>
+                        </div>
+                    @endif
+
                     <form id="form-overtime" action="{{ route('overtime.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="row g-3">
 
-                            <!-- Overtime Date -->
+                            <!-- Tanggal Lembur -->
                             <div class="col-md-12">
-                                <label class="form-label" for="tgl_pengajuan">Overtime Date <span class="text-danger">*</span></label>
+                                <label class="form-label" for="tgl_pengajuan">Tanggal Lembur <span class="text-danger">*</span></label>
                                 <input type="date" id="tgl_pengajuan" name="tgl_pengajuan" class="form-control @error('tgl_pengajuan') is-invalid @enderror"
                                     value="{{ old('tgl_pengajuan') }}" required max="{{ date('Y-m-d') }}">
                                 @error('tgl_pengajuan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            <!-- Start Time -->
+                            <!-- Jam Mulai -->
                             <div class="col-md-4">
-                                <label class="form-label" for="jam_mulai">Start Time <span class="text-danger">*</span></label>
+                                <label class="form-label" for="jam_mulai">Jam Mulai <span class="text-danger">*</span></label>
                                 <input type="time" id="jam_mulai" name="jam_mulai" class="form-control @error('jam_mulai') is-invalid @enderror"
                                     value="{{ old('jam_mulai') }}" required>
                                 @error('jam_mulai')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            <!-- End Time -->
+                            <!-- Jam Selesai -->
                             <div class="col-md-4">
-                                <label class="form-label" for="jam_selesai">End Time <span class="text-danger">*</span></label>
+                                <label class="form-label" for="jam_selesai">Jam Selesai <span class="text-danger">*</span></label>
                                 <input type="time" id="jam_selesai" name="jam_selesai" class="form-control @error('jam_selesai') is-invalid @enderror"
                                     value="{{ old('jam_selesai') }}" required>
                                 @error('jam_selesai')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            <!-- Total Hours (read-only) -->
+                            <!-- Total Jam (read-only) -->
                             <div class="col-md-4">
-                                <label class="form-label" for="total_jam">Total Hours</label>
+                                <label class="form-label" for="total_jam">Total Jam</label>
                                 <div class="input-group">
                                     <input type="text" id="total_jam" class="form-control bg-light" value="-" readonly>
                                     <span class="input-group-text">hrs</span>
                                 </div>
                             </div>
 
-                            <!-- Job Description -->
+                            <!-- Deskripsi Pekerjaan -->
                             <div class="col-md-12">
-                                <label class="form-label" for="deskripsi_pekerjaan">Job Description <span class="text-danger">*</span></label>
+                                <label class="form-label" for="deskripsi_pekerjaan">Deskripsi Pekerjaan <span class="text-danger">*</span></label>
                                 <textarea id="deskripsi_pekerjaan" name="deskripsi_pekerjaan" rows="4"
                                     class="form-control @error('deskripsi_pekerjaan') is-invalid @enderror"
-                                    placeholder="Describe the overtime work to be performed..." required maxlength="1000">{{ old('deskripsi_pekerjaan') }}</textarea>
+                                    placeholder="Jelaskan pekerjaan lembur yang akan dilakukan..." required maxlength="1000">{{ old('deskripsi_pekerjaan') }}</textarea>
                                 @error('deskripsi_pekerjaan')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                <small class="text-muted">Max 1000 characters.</small>
+                                <small class="text-muted">Maksimal 1000 karakter.</small>
                             </div>
 
-                            <!-- Upload Overtime Order -->
+                            <!-- Upload Surat Perintah Lembur -->
                             <div class="col-md-12">
                                 <label class="form-label" for="file_surat_lembur">
-                                    Overtime Order (Image) <span class="text-danger">*</span>
+                                    Surat Perintah Lembur (Gambar) <span class="text-danger">*</span>
                                 </label>
                                 <input type="file" id="file_surat_lembur" name="file_surat_lembur"
                                     class="form-control @error('file_surat_lembur') is-invalid @enderror"
                                     accept=".jpg,.jpeg,.png" required>
-                                <small class="text-muted">Allowed formats: JPG, JPEG, PNG. Max size: 5MB.</small>
+                                <small class="text-muted">Format yang diizinkan: JPG, JPEG, PNG. Maksimal ukuran: 5MB.</small>
                                 @error('file_surat_lembur')<div class="invalid-feedback">{{ $message }}</div>@enderror
 
                                 <!-- Image Preview -->
@@ -117,9 +133,13 @@
 
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <a href="{{ route('overtime.index') }}" class="btn btn-secondary">
-                                <i class="ti ti-x me-1"></i>Cancel
+                                <i class="ti ti-x me-1"></i>Batal
                             </a>
-                            <button type="button" id="btn-submit" class="btn btn-primary">
+                            <button type="button"
+                                    id="btn-submit"
+                                    class="btn btn-primary"
+                                    {{ !($isApprovalMatrixConfigured ?? false) ? 'disabled' : '' }}
+                                    title="{{ !($isApprovalMatrixConfigured ?? false) ? 'Matriks persetujuan lembur belum diatur.' : '' }}">
                                 <i class="ti ti-send me-1"></i>Submit
                             </button>
                         </div>
@@ -135,22 +155,41 @@
 <script>
 $(document).ready(function () {
 
+    function getDurationHours(start, end) {
+        if (!start || !end) {
+            return null;
+        }
+
+        const [sh, sm] = start.split(':').map(Number);
+        const [eh, em] = end.split(':').map(Number);
+
+        if ([sh, sm, eh, em].some(Number.isNaN)) {
+            return null;
+        }
+
+        let totalMins = (eh * 60 + em) - (sh * 60 + sm);
+        if (totalMins <= 0) {
+            totalMins += 24 * 60;
+        }
+
+        return totalMins / 60;
+    }
+
     // Auto-calculate total hours
     function calcHours() {
         const start = $('#jam_mulai').val();
         const end   = $('#jam_selesai').val();
-        if (start && end && end > start) {
-            const [sh, sm] = start.split(':').map(Number);
-            const [eh, em] = end.split(':').map(Number);
-            const totalMins = (eh * 60 + em) - (sh * 60 + sm);
-            const hrs = (totalMins / 60).toFixed(2);
-            $('#total_jam').val(hrs);
+        const totalHours = getDurationHours(start, end);
+
+        if (totalHours !== null) {
+            $('#total_jam').val(totalHours.toFixed(2));
         } else {
             $('#total_jam').val('-');
         }
     }
 
     $('#jam_mulai, #jam_selesai').on('change', calcHours);
+    calcHours();
 
     // Image preview
     $('#file_surat_lembur').on('change', function () {
@@ -178,36 +217,31 @@ $(document).ready(function () {
 
         // Basic front-end validation
         if (!tgl || !start || !end || !ket || !file) {
-            Swal.fire('Incomplete Form', 'Please fill in all required fields.', 'warning');
+            Swal.fire('Form Belum Lengkap', 'Mohon lengkapi semua field wajib.', 'warning');
             return;
         }
 
-        if (end <= start) {
-            Swal.fire('Invalid Time', 'End time must be after start time.', 'warning');
-            return;
-        }
-
-        const totalHrs = parseFloat(totalEl);
+        const totalHrs = getDurationHours(start, end);
         if (isNaN(totalHrs) || totalHrs < 1) {
-            Swal.fire('Too Short', 'Minimum overtime duration is 1 hour.', 'warning');
+            Swal.fire('Durasi Terlalu Singkat', 'Minimal durasi lembur adalah 1 jam.', 'warning');
             return;
         }
         if (totalHrs > 8) {
-            Swal.fire('Too Long', 'Maximum overtime duration is 8 hours per day.', 'warning');
+            Swal.fire('Durasi Terlalu Panjang', 'Maksimal durasi lembur adalah 8 jam per hari.', 'warning');
             return;
         }
 
         Swal.fire({
-            title: 'Submit Overtime Request?',
-            html: `<p class="mb-1">Date: <strong>${tgl}</strong></p>
-                   <p class="mb-1">Time: <strong>${start} – ${end}</strong></p>
-                   <p class="mb-0">Total: <strong>${totalHrs} hour(s)</strong></p>`,
+            title: 'Kirim Pengajuan Lembur?',
+             html: `<p class="mb-1">Tanggal: <strong>${tgl}</strong></p>
+                 <p class="mb-1">Jam: <strong>${start} – ${end}</strong></p>
+                 <p class="mb-0">Total: <strong>${totalHrs} jam</strong></p>`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#0d6efd',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, Submit!',
-            cancelButtonText: 'Review Again'
+            confirmButtonText: 'Ya, Kirim!',
+            cancelButtonText: 'Tinjau Lagi'
         }).then((result) => {
             if (result.isConfirmed) {
                 $('#form-overtime').submit();

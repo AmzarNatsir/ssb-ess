@@ -132,7 +132,7 @@ Template Name: CRMS - Bootstrap Admin Template
 		const isMini = $body.hasClass('mini-sidebar');
 		const isFullWidth = $html.attr('data-layout') === 'full-width';
 		const isHidden = $html.attr('data-layout') === 'hidden';
-	
+
 		if (isMini) {
 			$body.removeClass('mini-sidebar');
 			$(this).addClass('active');
@@ -148,7 +148,7 @@ Template Name: CRMS - Bootstrap Admin Template
 				$(".header-left").removeClass("active");
 			}, 100);
 		}
-	
+
 		// data-layout="full-width", apply full-width class to <body>
 		if (isFullWidth) {
 			$body.addClass('full-width').removeClass('mini-sidebar');
@@ -167,8 +167,8 @@ Template Name: CRMS - Bootstrap Admin Template
 			$(document).on('click', '.sidebar-close', function () {
 				$('body').removeClass('full-width');
 			});
-		} 
-	
+		}
+
 		return false;
 	});
 
@@ -185,19 +185,19 @@ Template Name: CRMS - Bootstrap Admin Template
 			});
 		});
 	});
-	
+
 	// Tooltip
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-	
+
 	// Input Mask
 	document.querySelectorAll('[data-toggle="input-mask"]').forEach(input => {
 		const format = input.getAttribute('data-mask-format');
-		const reverse = input.getAttribute('data-reverse') === 'true';		
+		const reverse = input.getAttribute('data-reverse') === 'true';
 		if (format && typeof Inputmask !== 'undefined') {
-			Inputmask({ 
-				mask: format.replace(/0/g, '9'), 
-				reverse: reverse 
+			Inputmask({
+				mask: format.replace(/0/g, '9'),
+				reverse: reverse
 			}).mask(input);
 		}
 	});
@@ -217,9 +217,9 @@ Template Name: CRMS - Bootstrap Admin Template
 	function initChoices() {
 		document.querySelectorAll('[data-choices]').forEach(item => {
 			const config = {
-				allowHTML: true  
+				allowHTML: true
 			};
-			const attrs = item.attributes;	
+			const attrs = item.attributes;
 			if (attrs['data-choices-groups']) {
 				config.placeholderValue = 'This is a placeholder set in the config';
 			}
@@ -255,17 +255,17 @@ Template Name: CRMS - Bootstrap Admin Template
 			}
 			if (attrs['data-choices-text-disabled-true']) {
 				config.addItems = false;
-			}	
-			const instance = new Choices(item, config);	
+			}
+			const instance = new Choices(item, config);
 			if (attrs['data-choices-text-disabled-true']) {
 				instance.disable();
 			}
 		});
 	}
-		
+
 	// Call it when the DOM is ready
 	document.addEventListener('DOMContentLoaded', initChoices);
-		
+
 	// Initialize Flatpickr on elements with data-provider="flatpickr"
 	document.querySelectorAll('[data-provider="flatpickr"]').forEach(el => {
 		const config = {
@@ -336,7 +336,7 @@ Template Name: CRMS - Bootstrap Admin Template
 		}
 		flatpickr(item, config);
 	});
-  
+
 	// Select2
 	if (jQuery().select2) {
 		$('[data-toggle="select2"]').each(function () {
@@ -393,7 +393,7 @@ Template Name: CRMS - Bootstrap Admin Template
 		});
 	}
 
-	// Select 2    
+	// Select 2
     if ($('.select').length > 0) {
         $('.select').select2({
             minimumResultsForSearch: -1,
@@ -418,10 +418,10 @@ Template Name: CRMS - Bootstrap Admin Template
 	});
 
 	// Datatable
-	if($('.datatable').length > 0) {
+	if ($.fn && $.fn.DataTable && $('.datatable').length > 0) {
 		$('.datatable').DataTable({
 			"bFilter": true,
-			"sDom": 'fBtlpi',  
+			"sDom": 'fBtlpi',
 			"ordering": true,
 			"language": {
 				search: ' ',
@@ -439,9 +439,9 @@ Template Name: CRMS - Bootstrap Admin Template
 			initComplete: (settings, json)=>{
 				$('.dataTables_filter').appendTo('#tableSearch');
 				$('.dataTables_filter').appendTo('.search-input');
-			},	
+			},
 		});
-	}		
+	}
 
 	// Filter
 	document.addEventListener("DOMContentLoaded", () => {
@@ -453,12 +453,12 @@ Template Name: CRMS - Bootstrap Admin Template
 			});
 		}
 	});
-  
+
 	// Toggle Password
 	if ($('.toggle-password').length > 0) {
 		$(document).on('click', '.toggle-password', function () {
 			const $icon = $(this).find('i');
-			const $input = $(this).closest('.input-group').find('.pass-input');		
+			const $input = $(this).closest('.input-group').find('.pass-input');
 			if ($input.attr('type') === 'password') {
 				$input.attr('type', 'text');
 				$icon.removeClass('ti-eye-off').addClass('ti-eye');
@@ -550,7 +550,7 @@ Template Name: CRMS - Bootstrap Admin Template
 		$('.btnFullscreen').on('click', toggleFullscreen);
 	}
 
-	// Aprrearence Settings 
+	// Aprrearence Settings
 	$('.theme-image').on('click', function(){
 		$('.theme-image').removeClass('active');
 		$(this).addClass('active');
@@ -597,7 +597,7 @@ Template Name: CRMS - Bootstrap Admin Template
         });
     }
 
-	// Otp Verfication  
+	// Otp Verfication
 	$('.digit-group input').each(function () {
 		const $input = $(this);
 		$input.attr('maxlength', 1);
@@ -659,7 +659,7 @@ Template Name: CRMS - Bootstrap Admin Template
 	// Add new invoice input on '+' click
 	$(document).on('click', '.add-invoices', function (e) {
 		e.preventDefault();
-	
+
 		const newInvoice = `
 			<tr class="invoices-list-item">
 				<td><input type="text" class="form-control" /></td>
@@ -672,7 +672,7 @@ Template Name: CRMS - Bootstrap Admin Template
 				</button></td>
 			</tr>
 		`;
-	
+
 		// Insert before the last row (the add button row)
 		$('.invoices-list tr:last').before(newInvoice);
 	});
@@ -680,7 +680,7 @@ Template Name: CRMS - Bootstrap Admin Template
 	// Add new invoice input on '+' click
 	$(document).on('click', '.add-invoices-two', function (e) {
 		e.preventDefault();
-	
+
 		const newInvoice = `
 			<tr class="invoices-list-item">
 				<td>
@@ -717,7 +717,7 @@ Template Name: CRMS - Bootstrap Admin Template
 					</a>
 				</td>
 			</tr>`;
-	
+
 		// Insert before the last row (the add button row)
 		$('.invoices-list-two tr:last').after(newInvoice);
 
@@ -735,7 +735,7 @@ Template Name: CRMS - Bootstrap Admin Template
 	// Add new invoice input on '+' click
 	$(document).on('click', '.add-invoices-3', function (e) {
 		e.preventDefault();
-	
+
 		const newInvoice = `
 			<tr class="invoices-list-item">
 				<td>
@@ -772,7 +772,7 @@ Template Name: CRMS - Bootstrap Admin Template
 					</a>
 				</td>
 			</tr>`;
-	
+
 		// Insert before the last row (the add button row)
 		$('.invoices-list-3 tr:last').after(newInvoice);
 
@@ -786,12 +786,12 @@ Template Name: CRMS - Bootstrap Admin Template
             }, 100);
         }, 100);
 	});
-	
+
 	// Remove Invoices input on trash icon click
 	$(document).on('click', '.remove-invoices', function (e) {
 		e.preventDefault();
 		$(this).closest('.invoices-list-item').remove();
-	}); 
+	});
 
 	// Theme Color
 	$('.themecolorset').on('click', function(){
@@ -837,9 +837,9 @@ Template Name: CRMS - Bootstrap Admin Template
 				'</div>' +
 			'</div>' +
 			'<div class="col-md-6">' +
-				'<div class="d-flex align-items-center mb-3">' +    
-					'<div class="form-wrap w-100 me-3">' +    
-					'<input class="form-control" type="text" placeholder="Email Address">' +    
+				'<div class="d-flex align-items-center mb-3">' +
+					'<div class="form-wrap w-100 me-3">' +
+					'<input class="form-control" type="text" placeholder="Email Address">' +
 					'</div>' +
 					'<div class="input-btn">' +
 						'<a href="javascript:void(0);" class="trash-sign"><i class="ti ti-trash"></i></a>' +

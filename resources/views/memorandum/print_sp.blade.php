@@ -107,7 +107,7 @@
     </tr>
     <tr><td colspan="3" style="height: 20px;"></td></tr>
     <tr>
-        <td colspan="3" style="text-align: right">Pomalaa, {{ date_format(date_create($dt_sp->tgl_sp), 'd') }} {{ \App\Helpers\HrdFunction::get_nama_bulan(date_format(date_create($dt_sp->tgl_sp), 'm')) }} {{ date_format(date_create($dt_sp->tgl_sp), 'Y') }}</td>
+        <td colspan="3" style="text-align: left">Pomalaa, {{ date_format(date_create($dt_sp->tgl_sp), 'd') }} {{ \App\Helpers\HrdFunction::get_nama_bulan(date_format(date_create($dt_sp->tgl_sp), 'm')) }} {{ date_format(date_create($dt_sp->tgl_sp), 'Y') }}</td>
     </tr>
     </table>
     <br>

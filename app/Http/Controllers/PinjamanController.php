@@ -66,7 +66,10 @@ class PinjamanController extends Controller
         // PKK: max 35% gaji pokok
         $maxPkk = $gajiPokok * 0.35;
 
-        return view('pinjaman.create', compact('karyawan', 'gajiPokok', 'tunjangan', 'maxPanjar', 'maxPkk'));
+        $group = 13; // group approval pinjaman
+        $isApprovalMatrixConfigured = Hrdfunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
+
+        return view('pinjaman.create', compact('karyawan', 'gajiPokok', 'tunjangan', 'maxPanjar', 'maxPkk', 'isApprovalMatrixConfigured'));
     }
 
     /**
@@ -104,15 +107,19 @@ class PinjamanController extends Controller
 
         // Business rule validation
         if ($kategori === 1) {
-            // Panjar Gaji: fixed 50% gaji pokok, tenor = 1
+            // Panjar Gaji: tenor fixed 1, nominal custom but max 50% gaji pokok
             $maxNominal   = $gajiPokok * 0.5;
             $tenorApply   = 1;
-            $nominalApply = $maxNominal;
-            $angsuran     = $nominalApply;
 
-            if ($nominalApply <= 0) {
+            if ($maxNominal <= 0) {
                 return redirect()->back()->with('error', 'Gaji pokok belum diatur. Hubungi HRD.');
             }
+
+            if ($nominalApply > $maxNominal) {
+                return redirect()->back()->withInput()->with('error', 'Jumlah pengajuan Panjar Gaji melebihi batas maksimal 50% dari gaji pokok.');
+            }
+
+            $angsuran = $nominalApply;
         } else {
             // PKK: angsuran max 35% gaji pokok
             $maxNominal = $gajiPokok * 0.35;

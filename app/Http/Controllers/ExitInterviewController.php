@@ -33,14 +33,17 @@ class ExitInterviewController extends Controller
             return redirect()->route('resign.index')->with('error', 'Anda sudah mengisi formulir Exit Interview untuk pengajuan ini.');
         }
 
-        return view('exit_interview.create', compact('resign'));
+        $group = 16;
+        $isApprovalMatrixConfigured = Hrdfunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
+
+        return view('exit_interview.create', compact('resign', 'isApprovalMatrixConfigured'));
     }
 
     public function store(Request $request)
     {
         $user = Auth::user();
         $karyawan = $user->karyawan;
-        
+
         $id_resign = $request->id_head;
         $resign = Resign::where('id_karyawan', $karyawan->id)->findOrFail($id_resign);
 
@@ -52,7 +55,7 @@ class ExitInterviewController extends Controller
         $_uuid = Str::uuid();
         $group = 16; // Group ID for Exit Interview
         $ifSet = Hrdfunction::set_approval_cek($group, $id_depat_karyawan);
-        
+
         if($ifSet == 0) {
             return redirect()->back()->with('error', 'Data approval belum diatur (Matriks Persetujuan). Hubungi HRD.');
         }
@@ -301,7 +304,7 @@ class ExitInterviewController extends Controller
 
             $exitInterview->delete();
             DB::commit();
-            
+
             return response()->json(['success' => true, 'message' => 'Pengajuan Exit Interview berhasil dibatalkan dan dihapus.']);
 
         } catch (\Exception $e) {

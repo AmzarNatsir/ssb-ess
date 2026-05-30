@@ -47,8 +47,10 @@ class ResignController extends Controller
         }
 
         $tgl_eff_resign = Carbon::today()->addDays(30)->format('Y-m-d');
-        
-        return view('resign.create', compact('tgl_eff_resign'));
+        $group = 15;
+        $isApprovalMatrixConfigured = Hrdfunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
+
+        return view('resign.create', compact('tgl_eff_resign', 'isApprovalMatrixConfigured'));
     }
 
     public function store(Request $request)
@@ -60,7 +62,7 @@ class ResignController extends Controller
         $_uuid = Str::uuid();
         $group = 15; // Group ID for Resign
         $ifSet = Hrdfunction::set_approval_cek($group, $id_depat_karyawan);
-        
+
         if($ifSet == 0) {
             return redirect()->back()->with('error', 'Data approval belum diatur (Matriks Persetujuan). Hubungi HRD.');
         }

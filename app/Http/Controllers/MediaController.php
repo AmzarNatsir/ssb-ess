@@ -14,7 +14,7 @@ class MediaController extends Controller
     public function proxy(Request $request)
     {
         $path = $request->query('path');
-        $type = $request->query('type', 'memo'); // 'memo' or 'photo'
+        $type = $request->query('type', 'memo'); // see $endpoints below
 
         if (!$path) {
             abort(404);
@@ -22,12 +22,18 @@ class MediaController extends Controller
 
         $baseUrl = config('services.media.url');
         $token = config('services.media.token');
-        
-        // Determine subpath based on type
-        // Based on media app routes: /api/media/photo/{filename} or /api/media/memo-internal/{filename}
-        $subPath = $type === 'photo' ? 'photo' : 'memo-internal';
-        $endpoint = rtrim($baseUrl, '/') . '/api/media/' . $subPath . '/';
-        $url = $endpoint . $path;
+
+        // Map the request type to the corresponding endpoint on the HRD app.
+        // 'photo'/'memo' use the media API (path = filename); the recruitment/
+        // employee endpoints use the HRD routes (path = record id).
+        $endpoints = [
+            'photo'           => '/api/media/photo/',
+            'memo'            => '/api/media/memo-internal/',
+            'pelamar_photo'   => '/hrd/recruitment/photo/',
+            'pelamar_dokumen' => '/hrd/employee/dokument/',
+        ];
+        $subPath = $endpoints[$type] ?? $endpoints['memo'];
+        $url = rtrim($baseUrl, '/') . $subPath . $path;
 
         $status = null;
         try {

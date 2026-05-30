@@ -41,6 +41,31 @@ class Karyawan extends Model
         return $this->belongsTo(Divisi::class, 'id_divisi', 'id');
     }
 
+    public function get_jabatan(): BelongsTo
+    {
+        return $this->belongsTo(Jabatan::class, 'id_jabatan', 'id');
+    }
+
+    public function get_departemen(): BelongsTo
+    {
+        return $this->belongsTo(Departemen::class, 'id_departemen', 'id');
+    }
+
+    public function get_subdepartemen(): BelongsTo
+    {
+        return $this->belongsTo(SubDepartemen::class, 'id_subdepartemen', 'id');
+    }
+
+    public function get_divisi(): BelongsTo
+    {
+        return $this->belongsTo(Divisi::class, 'id_divisi', 'id');
+    }
+
+    public function get_status_karyawan($id)
+    {
+        return \App\Helpers\HrdConstants::STATUS_KARYAWAN[$id] ?? '';
+    }
+
     /**
      * Calculate length of service.
      */

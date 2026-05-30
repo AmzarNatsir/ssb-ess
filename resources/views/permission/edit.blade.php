@@ -161,7 +161,7 @@
                                 </div>
                                 <div class="mb-0">
                                     <small class="text-muted d-block mb-1">Department</small>
-                                    <p class="mb-0">{{ $karyawan->departemen->nm_departemen ?? '-' }}</p>
+                                    <p class="mb-0">{{ $karyawan->departemen->nm_dept ?? '-' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -176,26 +176,47 @@
 
 @section('scripts')
 <script>
-$(document).ready(function() {
-    // Calculate jumlah hari when dates change
-    function calculateDays() {
-        const tglAwal = $('#tgl_awal').val();
-        const tglAkhir = $('#tgl_akhir').val();
+document.addEventListener('DOMContentLoaded', function() {
+    const startInput = document.getElementById('tgl_awal');
+    const endInput = document.getElementById('tgl_akhir');
+    const totalInput = document.getElementById('jumlah_hari');
 
-        if (tglAwal && tglAkhir) {
-            const startDate = new Date(tglAwal);
-            const endDate = new Date(tglAkhir);
-
-            if (endDate >= startDate) {
-                const diffTime = Math.abs(endDate - startDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                $('#jumlah_hari').val(diffDays);
-            } else {
-                $('#jumlah_hari').val(0);
-            }
+    function parseLocalDate(dateString) {
+        const parts = dateString.split('-').map(Number);
+        if (parts.length !== 3 || parts.some(Number.isNaN)) {
+            return null;
         }
+
+        return new Date(parts[0], parts[1] - 1, parts[2]);
     }
 
-    $('#tgl_awal, #tgl_akhir').on('change', calculateDays);
+    function calculateDays() {
+        const startValue = startInput.value;
+        const endValue = endInput.value;
+
+        if (!startValue || !endValue) {
+            totalInput.value = '0';
+            return;
+        }
+
+        const startDate = parseLocalDate(startValue);
+        const endDate = parseLocalDate(endValue);
+
+        if (!startDate || !endDate || endDate < startDate) {
+            totalInput.value = '0';
+            return;
+        }
+
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        const diffDays = Math.floor((endDate - startDate) / oneDayMs) + 1;
+        totalInput.value = String(diffDays);
+    }
+
+    startInput.addEventListener('change', calculateDays);
+    endInput.addEventListener('change', calculateDays);
+    startInput.addEventListener('input', calculateDays);
+    endInput.addEventListener('input', calculateDays);
+
+    calculateDays();
 });
 </script>

@@ -41,9 +41,21 @@ class PinjamanKaryawan extends Model
         return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
     }
 
+    // Legacy alias used by approval module.
+    public function getKaryawan()
+    {
+        return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
+    }
+
     public function pembayaran()
     {
         return $this->hasMany(PinjamanKaryawanPembayaran::class, 'id_head', 'id');
+    }
+
+    // Legacy alias used by approval module.
+    public function getDokumen()
+    {
+        return $this->hasMany(PinjamanKaryawanDokumen::class, 'id_head', 'id');
     }
 
     public function currentApprover()

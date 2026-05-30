@@ -55,8 +55,10 @@ class PermissionController extends Controller
         }
 
         $permissionTypes = \App\Models\JenisCuti::where('jenis_ci', 2)->where('status', 1)->get();
+        $group = 4;
+        $isApprovalMatrixConfigured = HrdFunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
 
-        return view('permission.create', compact('permissionTypes', 'karyawan'));
+        return view('permission.create', compact('permissionTypes', 'karyawan', 'isApprovalMatrixConfigured'));
     }
 
     /**
@@ -117,6 +119,10 @@ class PermissionController extends Controller
                 }
                 return redirect()->route('permission.index')->with('success', 'Permission application submitted successfully.');
             }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Matriks persetujuan pengajuan izin belum diatur. Silakan hubungi HRD/Administrator.');
 
         } catch (\Exception $e) {
             return redirect()->back()->withInput()->with('error', 'Failed to submit permission request.');

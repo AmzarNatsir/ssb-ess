@@ -63,4 +63,20 @@ class Overtime extends Model
     {
         return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
     }
+
+    /**
+     * Backward-compatible alias used by approval module.
+     */
+    public function get_profil_karyawan(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
+    }
+
+    /**
+     * Backward-compatible alias used by legacy modules.
+     */
+    public function get_current_approve(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'current_approval_id', 'id');
+    }
 }

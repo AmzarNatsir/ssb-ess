@@ -22,7 +22,7 @@
 
         <div class="row">
             <div class="col-md-10 mx-auto">
-                
+
                 @if(session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="ti ti-circle-x me-2"></i>{{ session('error') }}
@@ -40,6 +40,18 @@
                     </div>
                 @endif
 
+                @if(!$isApprovalMatrixConfigured)
+                    <div class="alert alert-danger border-start border-danger border-3 mb-4" role="alert">
+                        <div class="fw-semibold mb-1"><i class="ti ti-alert-triangle me-1"></i>Matriks Persetujuan Belum Diatur</div>
+                        <small>Form Exit Interview belum dapat dikirim karena data approval Pengajuan Form Exit Interview belum diatur untuk departemen Anda. Hubungi HRD untuk pengaturan matriks persetujuan.</small>
+                    </div>
+                @else
+                    <div class="alert alert-success border-start border-success border-3 mb-4" role="alert">
+                        <div class="fw-semibold mb-1"><i class="ti ti-check me-1"></i>Matriks Persetujuan Tersedia</div>
+                        <small>Matriks approval Pengajuan Form Exit Interview sudah diatur dan form dapat diproses.</small>
+                    </div>
+                @endif
+
                 <div class="card shadow-sm border-top border-primary border-4">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title fw-bold mb-0 text-primary">Silahkan isi jawaban pertanyaan berikut:</h5>
@@ -47,13 +59,13 @@
                     <form action="{{ route('exit-interview.store') }}" method="POST">
                         @csrf
                         <input type="hidden" name="id_head" value="{{ $resign->id }}">
-                        
+
                         <div class="card-body">
                             <!-- Pertanyaan 1 -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-primary">1. Apa yang menjadi alasan anda mengundurkan diri dari PT. SSB <span class="text-danger">*</span></label>
                                 <textarea class="form-control mb-3" name="jawaban_1" rows="3" required>{{ old('jawaban_1') }}</textarea>
-                                
+
                                 <div class="bg-light p-3 rounded border">
                                     <small class="text-primary d-block mb-3">* Jika pindah ke perusahaan lain, silakan sebut informasi berikut:</small>
                                     <div class="row align-items-center mb-2">
@@ -141,7 +153,7 @@
                                         <label class="form-check-label" for="j8_3">Kurang</label>
                                     </div>
                                 </div>
-                                
+
                                 <label class="form-label fw-semibold small text-muted">Alasan <span class="text-danger">*</span></label>
                                 <textarea class="form-control" name="jawaban_8_1" rows="2" required>{{ old('jawaban_8_1') }}</textarea>
                             </div>
@@ -153,7 +165,7 @@
 
                                 <div class="bg-light p-3 rounded border">
                                     <small class="text-primary d-block mb-3">* Mohon berikan skala penilaian (1 s/d 4) di bawah ini (1 = Kurang Sekali, 2 = Kurang, 3 = Baik, 4 = Sangat Baik)</small>
-                                    
+
                                     @php
                                         $ratings = [
                                             ['name' => 'jawaban_9_1', 'label' => '1. Kenyamanan Kerja'],
@@ -195,7 +207,7 @@
 
                         </div>
                         <div class="card-footer bg-white border-top text-end py-3">
-                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center px-4">
+                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center px-4" {{ !$isApprovalMatrixConfigured ? 'disabled' : '' }}>
                                 <i class="ti ti-device-floppy me-2"></i>Kirim Exit Interview
                             </button>
                         </div>

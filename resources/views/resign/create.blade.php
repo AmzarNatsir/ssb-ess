@@ -22,7 +22,7 @@
 
         <div class="row">
             <div class="col-md-8 mx-auto">
-                
+
                 @if(session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="ti ti-circle-x me-2"></i>{{ session('error') }}
@@ -40,6 +40,18 @@
                     </div>
                 @endif
 
+                @if(!$isApprovalMatrixConfigured)
+                    <div class="alert alert-danger border-start border-danger border-3 mb-4" role="alert">
+                        <div class="fw-semibold mb-1"><i class="ti ti-alert-triangle me-1"></i>Matriks Persetujuan Belum Diatur</div>
+                        <small>Pengajuan resign belum dapat dikirim karena data approval Pengajuan Resign belum diatur untuk departemen Anda. Hubungi HRD untuk pengaturan matriks persetujuan.</small>
+                    </div>
+                @else
+                    <div class="alert alert-success border-start border-success border-3 mb-4" role="alert">
+                        <div class="fw-semibold mb-1"><i class="ti ti-check me-1"></i>Matriks Persetujuan Tersedia</div>
+                        <small>Matriks approval Pengajuan Resign sudah diatur dan pengajuan dapat diproses.</small>
+                    </div>
+                @endif
+
                 <div class="alert alert-info alert-dismissible fade show shadow-sm border-0 d-flex align-items-center mb-4" role="alert">
                     <i class="ti ti-info-circle fs-2 me-3 text-info"></i>
                     <div>
@@ -47,6 +59,8 @@
                         <small>Pengajuan pengunduran diri dibuat 30 hari sebelum pengunduran diri Anda. Sistem secara otomatis menetapkan tanggal efektif resign Anda 30 hari sejak formulir ini diajukan.</small>
                     </div>
                 </div>
+
+
 
                 <div class="card shadow-sm">
                     <div class="card-header bg-white py-3">
@@ -76,7 +90,7 @@
                             </div>
                         </div>
                         <div class="card-footer bg-white border-top text-end py-3">
-                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center">
+                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center" {{ !$isApprovalMatrixConfigured ? 'disabled' : '' }}>
                                 <i class="ti ti-device-floppy me-2"></i>Simpan Pengajuan
                             </button>
                         </div>

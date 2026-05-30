@@ -7,7 +7,7 @@
             <!-- Page Header -->
             <div class="d-flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
                 <div>
-                    <h4 class="mb-1">Overtime Management</h4>
+                    <h4 class="mb-1">Manajemen Lembur</h4>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0 p-0">
                             <li class="breadcrumb-item"><a href="{{ url('index') }}">Home</a></li>
@@ -17,7 +17,7 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <a href="{{ route('overtime.create') }}" class="btn btn-primary d-inline-flex align-items-center">
-                        <i class="ti ti-circle-plus me-1"></i>Apply Overtime
+                        <i class="ti ti-circle-plus me-1"></i>Ajukan Lembur
                     </a>
                 </div>
             </div>
@@ -64,13 +64,13 @@
                                 <table class="table table-hover mb-0" id="table-submission">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th>Submission Date</th>
-                                            <th>Overtime Date</th>
-                                            <th>Start Time</th>
-                                            <th>End Time</th>
-                                            <th>Total Hours</th>
+                                            <th>Tanggal Pengajuan</th>
+                                            <th>Tanggal Lembur</th>
+                                            <th>Jam Mulai</th>
+                                            <th>Jam Selesai</th>
+                                            <th>Total Jam</th>
                                             <th>Status</th>
-                                            <th>Action</th>
+                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -83,11 +83,11 @@
                                                 <td>{{ $overtime->total_jam }} hrs</td>
                                                 <td>
                                                     <span class="badge bg-light-warning text-warning mb-1">
-                                                        <i class="ti ti-point-filled me-1"></i>Pending
+                                                        <i class="ti ti-point-filled me-1"></i>Menunggu
                                                     </span>
                                                     @if($overtime->currentApproval)
                                                         <div class="small text-muted">
-                                                            Waiting: <span class="text-primary">{{ $overtime->currentApproval->nm_lengkap }}</span>
+                                                            Menunggu: <span class="text-primary">{{ $overtime->currentApproval->nm_lengkap }}</span>
                                                             <div class="x-small">({{ $overtime->currentApproval->jabatan->nm_jabatan ?? '-' }})</div>
                                                         </div>
                                                     @endif
@@ -100,18 +100,18 @@
                                                         <ul class="dropdown-menu dropdown-menu-end">
                                                             <li>
                                                                 <a class="dropdown-item btn-view-details" href="javascript:void(0);" data-id="{{ $overtime->id }}">
-                                                                    <i class="ti ti-eye me-2"></i>View Details
+                                                                    <i class="ti ti-eye me-2"></i>Lihat Detail
                                                                 </a>
                                                             </li>
                                                             @if (!$overtime->isLockedByApprover())
                                                                 <li>
                                                                     <a class="dropdown-item" href="{{ route('overtime.edit', $overtime->id) }}">
-                                                                        <i class="ti ti-edit me-2"></i>Edit Request
+                                                                        <i class="ti ti-edit me-2"></i>Edit Pengajuan
                                                                     </a>
                                                                 </li>
                                                                 <li>
                                                                     <a class="dropdown-item text-danger btn-cancel-overtime" href="javascript:void(0);" data-id="{{ $overtime->id }}">
-                                                                        <i class="ti ti-trash me-2"></i>Cancel Request
+                                                                        <i class="ti ti-trash me-2"></i>Batalkan Pengajuan
                                                                     </a>
                                                                 </li>
                                                             @endif
@@ -121,7 +121,7 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="7" class="text-center py-4 text-muted">No pending overtime requests found.</td>
+                                                <td colspan="7" class="text-center py-4 text-muted">Belum ada pengajuan lembur yang menunggu.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -135,14 +135,14 @@
                                 <table class="table table-hover mb-0" id="table-history">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th>Submission Date</th>
-                                            <th>Overtime Date</th>
-                                            <th>Start Time</th>
-                                            <th>End Time</th>
-                                            <th>Total Hours</th>
-                                            <th>Job Description</th>
+                                            <th>Tanggal Pengajuan</th>
+                                            <th>Tanggal Lembur</th>
+                                            <th>Jam Mulai</th>
+                                            <th>Jam Selesai</th>
+                                            <th>Total Jam</th>
+                                            <th>Deskripsi Pekerjaan</th>
                                             <th>Status</th>
-                                            <th>Action</th>
+                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -157,26 +157,26 @@
                                                 <td>
                                                     @if($overtime->status_pengajuan == 1)
                                                         <span class="badge bg-light-warning text-warning mb-1">
-                                                            <i class="ti ti-clock me-1"></i>Waiting
+                                                            <i class="ti ti-clock me-1"></i>Menunggu
                                                         </span>
                                                     @elseif($overtime->status_pengajuan == 2)
                                                         <span class="badge bg-light-success text-success mb-1">
-                                                            <i class="ti ti-check me-1"></i>Approved
+                                                            <i class="ti ti-check me-1"></i>Disetujui
                                                         </span>
                                                     @else
                                                         <span class="badge bg-light-danger text-danger mb-1">
-                                                            <i class="ti ti-x me-1"></i>Rejected
+                                                            <i class="ti ti-x me-1"></i>Ditolak
                                                         </span>
                                                     @endif
 
                                                     @if($overtime->currentApproval)
                                                         <div class="small text-muted">
                                                             @if($overtime->status_pengajuan == 2)
-                                                                Approved by:
+                                                                Disetujui oleh:
                                                             @elseif($overtime->status_pengajuan == 3)
-                                                                Rejected by:
+                                                                Ditolak oleh:
                                                             @else
-                                                                Waiting:
+                                                                Menunggu:
                                                             @endif
                                                             <span class="text-primary">{{ $overtime->currentApproval->nm_lengkap }}</span>
                                                             <div class="x-small">({{ $overtime->currentApproval->jabatan->nm_jabatan ?? '-' }})</div>
@@ -185,7 +185,7 @@
                                                 </td>
                                                 <td>
                                                     <div class="d-flex gap-2">
-                                                        <a href="javascript:void(0);" class="btn btn-icon btn-sm btn-light btn-view-details" data-id="{{ $overtime->id }}" data-bs-toggle="tooltip" title="View Details">
+                                                        <a href="javascript:void(0);" class="btn btn-icon btn-sm btn-light btn-view-details" data-id="{{ $overtime->id }}" data-bs-toggle="tooltip" title="Lihat Detail">
                                                             <i class="ti ti-eye"></i>
                                                         </a>
                                                     </div>
@@ -193,7 +193,7 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="7" class="text-center py-4 text-muted">No overtime history found.</td>
+                                                <td colspan="7" class="text-center py-4 text-muted">Belum ada riwayat lembur.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -214,8 +214,8 @@
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-light border-0 pb-3">
                     <div>
-                        <h5 class="modal-title fw-semibold mb-1">Overtime Request Details</h5>
-                        <p class="text-muted small mb-0">Complete information about overtime request</p>
+                        <h5 class="modal-title fw-semibold mb-1">Detail Pengajuan Lembur</h5>
+                        <p class="text-muted small mb-0">Informasi lengkap pengajuan lembur</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -229,7 +229,7 @@
                                             <i class="ti ti-calendar-event"></i>
                                         </div>
                                         <div class="flex-fill">
-                                            <label class="text-muted small mb-1">Overtime Date</label>
+                                            <label class="text-muted small mb-1">Tanggal Lembur</label>
                                             <p class="fw-semibold mb-0" id="detail-tgl-pengajuan">-</p>
                                         </div>
                                     </div>
@@ -240,7 +240,7 @@
                                             <i class="ti ti-clock-play"></i>
                                         </div>
                                         <div class="flex-fill">
-                                            <label class="text-muted small mb-1">Start Time</label>
+                                            <label class="text-muted small mb-1">Jam Mulai</label>
                                             <p class="fw-semibold mb-0" id="detail-jam-mulai">-</p>
                                         </div>
                                     </div>
@@ -251,7 +251,7 @@
                                             <i class="ti ti-clock-stop"></i>
                                         </div>
                                         <div class="flex-fill">
-                                            <label class="text-muted small mb-1">End Time</label>
+                                            <label class="text-muted small mb-1">Jam Selesai</label>
                                             <p class="fw-semibold mb-0" id="detail-jam-selesai">-</p>
                                         </div>
                                     </div>
@@ -262,7 +262,7 @@
                                             <i class="ti ti-hourglass"></i>
                                         </div>
                                         <div class="flex-fill">
-                                            <label class="text-muted small mb-1">Total Hours</label>
+                                            <label class="text-muted small mb-1">Total Jam</label>
                                             <p class="fw-semibold mb-0"><span id="detail-total-jam">-</span> hrs</p>
                                         </div>
                                     </div>
@@ -284,7 +284,7 @@
                                             <i class="ti ti-paperclip"></i>
                                         </div>
                                         <div class="flex-fill">
-                                            <label class="text-muted small mb-1">Overtime Order</label>
+                                            <label class="text-muted small mb-1">Surat Perintah Lembur</label>
                                             <div id="detail-file-wrap">-</div>
                                         </div>
                                     </div>
@@ -295,7 +295,7 @@
                                             <i class="ti ti-message-circle"></i>
                                         </div>
                                         <div class="flex-fill">
-                                            <label class="text-muted small mb-1">Job Description</label>
+                                            <label class="text-muted small mb-1">Deskripsi Pekerjaan</label>
                                             <p class="mb-0 text-dark" id="detail-keterangan">-</p>
                                         </div>
                                     </div>
@@ -307,7 +307,7 @@
                     <!-- Approval History -->
                     <div class="mb-0">
                         <h6 class="fw-semibold mb-3">
-                            <i class="ti ti-timeline me-2 text-primary"></i>Approval History
+                            <i class="ti ti-timeline me-2 text-primary"></i>Riwayat Persetujuan
                         </h6>
                         <div class="card border mb-0">
                             <div class="card-body p-0">
@@ -316,9 +316,9 @@
                                         <thead class="bg-light">
                                             <tr>
                                                 <th class="border-0 py-3">Level</th>
-                                                <th class="border-0 py-3">Approver</th>
+                                                <th class="border-0 py-3">Penyetuju</th>
                                                 <th class="border-0 py-3">Status</th>
-                                                <th class="border-0 py-3">Remark</th>
+                                                <th class="border-0 py-3">Catatan</th>
                                             </tr>
                                         </thead>
                                         <tbody id="detail-approval-history">
@@ -332,7 +332,7 @@
                 </div>
                 <div class="modal-footer bg-light border-0">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="ti ti-x me-1"></i>Close
+                        <i class="ti ti-x me-1"></i>Tutup
                     </button>
                 </div>
             </div>
@@ -372,7 +372,7 @@ $(document).ready(function () {
                     if (d.file_surat_perintah_lembur) {
                         $('#detail-file-wrap').html(
                             `<a href="${d.file_surat_perintah_lembur}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                <i class="ti ti-photo me-1"></i>View Image
+                                <i class="ti ti-photo me-1"></i>Lihat Gambar
                             </a>`
                         );
                     } else {
@@ -433,7 +433,7 @@ $(document).ready(function () {
                             `;
                         });
                     } else {
-                        approvalHtml = '<tr><td colspan="4" class="text-center py-4 text-muted small">No approval process found.</td></tr>';
+                        approvalHtml = '<tr><td colspan="4" class="text-center py-4 text-muted small">Belum ada proses persetujuan.</td></tr>';
                     }
                     $('#detail-approval-history').html(approvalHtml);
 
@@ -441,7 +441,7 @@ $(document).ready(function () {
                 }
             },
             error: function () {
-                Swal.fire('Error', 'Failed to fetch overtime details.', 'error');
+                Swal.fire('Error', 'Gagal mengambil detail lembur.', 'error');
             }
         });
     });
@@ -451,14 +451,14 @@ $(document).ready(function () {
         const id = $(this).data('id');
 
         Swal.fire({
-            title: 'Cancel Overtime Request?',
-            text: 'This action cannot be undone.',
+            title: 'Batalkan Pengajuan Lembur?',
+            text: 'Tindakan ini tidak dapat dibatalkan.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, cancel it!',
-            cancelButtonText: 'No, keep it'
+            confirmButtonText: 'Ya, Batalkan!',
+            cancelButtonText: 'Tidak'
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = $('#form-cancel-overtime');

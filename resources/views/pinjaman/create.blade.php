@@ -30,6 +30,18 @@
             </div>
         @endif
 
+        @if(!$isApprovalMatrixConfigured)
+            <div class="alert alert-danger border-start border-danger border-3 mb-4">
+                <div class="fw-semibold mb-1"><i class="ti ti-alert-triangle me-1"></i>Matriks Persetujuan Belum Diatur</div>
+                <div class="small mb-0">Pengajuan pinjaman belum dapat dikirim karena data approval belum diatur untuk departemen Anda. Hubungi HRD untuk pengaturan matriks persetujuan.</div>
+            </div>
+        @else
+            <div class="alert alert-success border-start border-success border-3 mb-4">
+                <div class="fw-semibold mb-1"><i class="ti ti-check me-1"></i>Matriks Persetujuan Tersedia</div>
+                <div class="small mb-0">Matriks approval untuk pengajuan pinjaman sudah diatur. Anda dapat melanjutkan proses pengajuan.</div>
+            </div>
+        @endif
+
         <!-- Employee Profile Card -->
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-body p-0">
@@ -61,14 +73,14 @@
 
                     <!-- Salary breakdown -->
                     <div class="d-flex flex-wrap flex-grow-1">
-                        <div class="p-4 flex-grow-1 border-end">
+                        {{-- <div class="p-4 flex-grow-1 border-end">
                             <div class="text-muted small mb-1"><i class="ti ti-cash me-1"></i>Gaji Pokok</div>
                             <div class="fw-bold fs-5 text-dark">Rp {{ number_format($gajiPokok, 0, ',', '.') }}</div>
                         </div>
                         <div class="p-4 flex-grow-1 border-end">
                             <div class="text-muted small mb-1"><i class="ti ti-gift me-1"></i>Tunjangan</div>
                             <div class="fw-bold fs-5 text-dark">Rp {{ number_format($tunjangan, 0, ',', '.') }}</div>
-                        </div>
+                        </div> --}}
                         <div class="p-4 flex-grow-1 border-end" style="background:#f0fdf4;">
                             <div class="text-muted small mb-1"><i class="ti ti-wallet me-1 text-success"></i>Maks. Panjar Gaji <span class="badge bg-light-success text-success ms-1">50%</span></div>
                             <div class="fw-bold fs-5 text-success">Rp {{ number_format($maxPanjar, 0, ',', '.') }}</div>
@@ -165,18 +177,22 @@
                         </div>
                         <div class="card-body">
 
-                            <!-- Panjar fields (readonly) -->
+                            <!-- Panjar fields (editable with max 50%) -->
                             <div id="fieldsPanjar">
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold">Jumlah Pengajuan</label>
+                                    <label class="form-label fw-semibold">Jumlah Pengajuan <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text">Rp</span>
-                                        <input type="text" id="displayNominalPanjar" class="form-control bg-light fw-bold text-success"
-                                               value="{{ number_format($maxPanjar,0,',','.') }}" readonly>
+                                        <input type="text" id="nominalPanjar" name="nominal_apply_panjar" class="form-control fw-bold text-success"
+                                               placeholder="0"
+                                               value="{{ old('nominal_apply_panjar', number_format($maxPanjar,0,',','.')) }}">
                                     </div>
-                                    <small class="text-muted">Otomatis: 50% dari Gaji Pokok</small>
+                                    <div id="panjarWarning" class="text-danger small mt-1" style="display:none;">
+                                        Jumlah pengajuan Panjar Gaji melebihi batas maksimal 50% dari gaji pokok.
+                                    </div>
+                                    <small class="text-muted">Custom nominal, maksimal: <strong>Rp {{ number_format($maxPanjar,0,',','.') }}</strong> (50% dari Gaji Pokok)</small>
                                     <!-- Hidden actual input -->
-                                    <input type="hidden" id="hiddenNominalPanjar" name="nominal_apply" value="{{ $maxPanjar }}">
+                                    <input type="hidden" id="hiddenNominalPanjar" name="nominal_apply" value="{{ old('nominal_apply', $maxPanjar) }}">
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-md-6">
@@ -250,7 +266,7 @@
 
                     <div class="d-flex justify-content-end gap-2 mt-3">
                         <a href="{{ route('pinjaman.index') }}" class="btn btn-light">Batal</a>
-                        <button type="submit" class="btn btn-primary" id="btnSubmit">
+                        <button type="submit" class="btn btn-primary" id="btnSubmit" {{ !$isApprovalMatrixConfigured ? 'disabled' : '' }}>
                             <i class="ti ti-send me-2"></i>Kirim Pengajuan
                         </button>
                     </div>
@@ -268,10 +284,66 @@
 $(function() {
     const maxPanjar = {{ $maxPanjar }};
     const maxPkk    = {{ $maxPkk }};
+    const isApprovalMatrixConfigured = {{ $isApprovalMatrixConfigured ? 'true' : 'false' }};
     let docCount    = 0;
 
     function formatRp(val) {
         return new Intl.NumberFormat('id-ID').format(Math.round(val));
+    }
+
+    function showErrorDialog(message) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validasi Gagal',
+                text: message,
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        // Fallback non-native: tampilkan pesan pada area warning panjar jika SweetAlert tidak tersedia.
+        $('#panjarWarning').text(message).show();
+    }
+
+    function validatePanjarRealtime() {
+        const panjarStr = $('#nominalPanjar').val().replace(/\./g, '');
+        const panjarNominal = parseFloat(panjarStr) || 0;
+        const isPanjar = $('input[name="kategori"]:checked').val() === '1';
+        const isInvalid = panjarNominal <= 0 || panjarNominal > maxPanjar;
+
+        if (isInvalid) {
+            const message = panjarNominal <= 0
+                ? 'Jumlah pengajuan Panjar Gaji harus lebih dari 0.'
+                : 'Jumlah pengajuan Panjar Gaji melebihi batas maksimal 50% dari gaji pokok.';
+
+            $('#panjarWarning').text(message).show();
+            $('#nominalPanjar').addClass('is-invalid');
+            if (isPanjar) {
+                $('#btnSubmit').prop('disabled', true);
+            }
+            return false;
+        }
+
+        $('#panjarWarning').hide();
+        $('#nominalPanjar').removeClass('is-invalid');
+        if (isPanjar) {
+            $('#btnSubmit').prop('disabled', false);
+        }
+
+        return true;
+    }
+
+    function syncPanjarValues() {
+        const panjarStr = $('#nominalPanjar').val().replace(/\./g, '');
+        const panjarNominal = parseFloat(panjarStr) || 0;
+
+        // Panjar tenor fixed 1 bulan, sehingga angsuran = nominal pengajuan.
+        $('#angsuranPanjar').val(formatRp(panjarNominal));
+        $('#hiddenNominalPanjar').val(panjarNominal);
+        $('#finalNominal').val(panjarNominal);
+        $('#finalTenor').val(1);
+        validatePanjarRealtime();
     }
 
     // --- Switch between Panjar / PKK ---
@@ -281,9 +353,8 @@ $(function() {
             $('#fieldsPkk').hide();
             $('#infoPanjar').show();
             $('#infoPkk').hide();
-            // set hidden panjar fields
-            $('#finalNominal').val(maxPanjar);
-            $('#finalTenor').val(1);
+
+            syncPanjarValues();
             // Remove PKK name attrs so they don't conflict
             $('[name="nominal_apply_pkk"]').removeAttr('required');
             $('[name="tenor_apply_pkk"]').removeAttr('required');
@@ -292,6 +363,9 @@ $(function() {
             $('#fieldsPkk').show();
             $('#infoPanjar').hide();
             $('#infoPkk').show();
+            $('#panjarWarning').hide();
+            $('#nominalPanjar').removeClass('is-invalid');
+            $('#btnSubmit').prop('disabled', false);
             // Add at least one doc row if empty
             if (docCount === 0) addDocRow();
             $('[name="nominal_apply_pkk"]').attr('required', true);
@@ -301,6 +375,19 @@ $(function() {
 
     $('input[name="kategori"]').on('change', function() {
         switchKategori($(this).val());
+    });
+
+    // Panjar input format & sync hidden value
+    $('#nominalPanjar').on('input', function() {
+        let val = $(this).val().replace(/[^0-9]/g, '');
+        if (val) {
+            val = parseInt(val, 10).toString();
+            $(this).val(val.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
+        } else {
+            $(this).val('');
+        }
+
+        syncPanjarValues();
     });
 
     // Init on load
@@ -367,9 +454,30 @@ $(function() {
 
     // --- Form submit: validate & set hidden fields ---
     $('#formPinjaman').on('submit', function(e) {
+        if (!isApprovalMatrixConfigured) {
+            e.preventDefault();
+            showErrorDialog('Data approval belum diatur (Matriks Persetujuan). Hubungi HRD.');
+            return;
+        }
+
         const kat = $('input[name="kategori"]:checked').val();
         if (kat === '1') {
-            $('#finalNominal').val(maxPanjar);
+            const nominalStr = $('#nominalPanjar').val().replace(/\./g, '');
+            const nominal = parseFloat(nominalStr) || 0;
+
+            if (nominal <= 0) {
+                e.preventDefault();
+                showErrorDialog('Jumlah pengajuan Panjar Gaji tidak valid.');
+                return;
+            }
+
+            if (nominal > maxPanjar) {
+                e.preventDefault();
+                showErrorDialog('Jumlah pengajuan Panjar Gaji melebihi batas maksimal 50% dari gaji pokok.');
+                return;
+            }
+
+            $('#finalNominal').val(nominal);
             $('#finalTenor').val(1);
         } else {
             const nominalStr = $('#nominalPkk').val().replace(/\./g, '');
@@ -377,18 +485,18 @@ $(function() {
             const tenor   = parseInt($('#tenorPkk').val()) || 0;
             if (nominal <= 0) {
                 e.preventDefault();
-                alert('Jumlah pengajuan tidak valid.');
+                showErrorDialog('Jumlah pengajuan tidak valid.');
                 return;
             }
             if (tenor < 1) {
                 e.preventDefault();
-                alert('Tenor minimal 1 bulan.');
+                showErrorDialog('Tenor minimal 1 bulan.');
                 return;
             }
             const angsuran = nominal / tenor;
             if (angsuran > maxPkk) {
                 e.preventDefault();
-                alert('Angsuran per bulan melebihi batas 35% gaji pokok.');
+                showErrorDialog('Angsuran per bulan melebihi batas 35% gaji pokok.');
                 return;
             }
             $('#finalNominal').val(nominal);

@@ -1,0 +1,207 @@
+<div class="modal-header bg-primary text-white border-0">
+    <h5 class="modal-title fw-bold" id="exampleModalCenteredScrollableTitle">
+        <i class="ti ti-school me-2"></i>Form Persetujuan Pengajuan Pelatihan
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<form action="{{ route('approval.store') }}" method="post" id="myForm">
+{{ csrf_field() }}
+<input type="hidden" name="id_pengajuan" value="{{ $data_approval->id }}">
+<input type="hidden" name="key_approval" value="{{ $data_approval->approval_key }}">
+<input type="hidden" name="level_approval" value="{{ $data_approval->approval_level }}">
+<input type="hidden" name="date_approval" value="{{ $data_approval->approval_date }}">
+<input type="hidden" name="group_approval" value="{{ $data_approval->approval_group }}">
+<input type="hidden" name="status_approval" value="{{ $profil->status_pengajuan }}">
+<div class="modal-body p-4">
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-7">
+            <div class="card bg-light border-0 h-100">
+                <div class="card-body">
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="ti ti-info-circle me-2"></i>Pengajuan Pelatihan
+                    </h6>
+                    <table class="table table-sm table-borderless mb-3">
+                        <tr>
+                            <td class="text-muted" style="width:30%">Periode Tahun</td>
+                            <td class="fw-semibold">{{ $profil->tahun }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Deskripsi</td>
+                            <td class="fw-semibold">{{ $profil->deskripsi }}</td>
+                        </tr>
+                    </table>
+
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="ti ti-list me-2"></i>Daftar Pelatihan
+                    </h6>
+                    @foreach ($profil->get_detail as $list)
+                    @php
+                        $nama_pelatihan = ($list->getPelatihan->kategori=='Internal') ? $list->getPelatihan->get_nama_pelatihan->nama_pelatihan : $list->getPelatihan->nama_pelatihan;
+                    @endphp
+                    <div class="card border mb-3">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0">{{ $nama_pelatihan }}</h6>
+                                @if($list->getPelatihan->kategori=="Internal")
+                                <span class="badge bg-light-success text-success">{{ $list->getPelatihan->kategori }}</span>
+                                @else
+                                <span class="badge bg-light-dark text-dark">{{ $list->getPelatihan->kategori }}</span>
+                                @endif
+                            </div>
+                            <div class="text-muted small mb-1"><i class="ti ti-clock me-1"></i>Durasi: {{ $list->getPelatihan->durasi }}</div>
+                            <div class="text-muted small mb-1"><i class="ti ti-cash me-1"></i>Biaya: Rp {{ number_format($list->getPelatihan->investasi_per_orang, 0, ',', '.') }}</div>
+                            @if(!empty($list->getPelatihan->departemen_by))
+                            <div class="text-muted small mb-1"><i class="ti ti-building me-1"></i>Diajukan: {{ $list->getPelatihan->get_departemen->nm_dept }}</div>
+                            @endif
+                            <div class="text-muted small mb-2">
+                                <i class="ti ti-calendar me-1"></i>
+                                @if($list->getPelatihan->tanggal_awal==$list->getPelatihan->hari_sampai)
+                                    {{ App\Helpers\Hrdhelper::get_hari($list->getPelatihan->tanggal_awal) }}
+                                @else
+                                    {{ App\Helpers\Hrdhelper::get_hari_ini($list->getPelatihan->tanggal_awal). " - ".App\Helpers\Hrdhelper::get_hari_ini($list->getPelatihan->tanggal_sampai) }}
+                                @endif,
+                                {{ App\Helpers\Hrdhelper::get_tanggal_pelaksanaan($list->getPelatihan->tanggal_awal, $list->getPelatihan->tanggal_sampai, $list->getPelatihan->hari_awal, $list->getPelatihan->hari_sampai) }}
+                            </div>
+                            <div class="mb-2">
+                                <div class="text-muted small fw-semibold">Kompetensi:</div>
+                                <div class="small">{{ $list->getPelatihan->kompetensi }}</div>
+                            </div>
+                            <div>
+                                <div class="text-muted small fw-semibold mb-2">Peserta:</div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach ($list->getPelatihan->get_peserta as $peserta)
+                                    <div class="d-flex align-items-center bg-white border rounded px-2 py-1">
+                                        @if(!empty($peserta->get_karyawan->photo))
+                                            <a href="{{ url(Storage::url('hrd/photo/'.$peserta->get_karyawan->photo)) }}" data-fancybox data-caption='{{ $peserta->get_karyawan->nm_lengkap }}'>
+                                                <img class="rounded-circle me-2" src="{{ url(Storage::url('hrd/photo/'.$peserta->get_karyawan->photo)) }}" alt="profile" style="width:32px; height:32px; object-fit:cover;">
+                                            </a>
+                                        @else
+                                            <a href="{{ asset('assets/images/no_image.png') }}" data-fancybox data-caption='{{ $peserta->get_karyawan->nm_lengkap }}'>
+                                                <img class="rounded-circle me-2" src="{{ asset('assets/images/no_image.png') }}" alt="profile" style="width:32px; height:32px; object-fit:cover;">
+                                            </a>
+                                        @endif
+                                        <div>
+                                            <div class="fw-semibold small">{{ $peserta->get_karyawan->nm_lengkap }}</div>
+                                            <div class="text-muted" style="font-size:0.7rem;">{{ (blank($peserta->get_karyawan->id_departemen)) ? "" : $peserta->get_karyawan->get_departemen->nm_dept }} - {{ (blank($peserta->get_karyawan->id_jabatan)) ? "" : $peserta->get_karyawan->get_jabatan->nm_jabatan }}</div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card bg-light border-0 h-100">
+                <div class="card-body">
+                    {{-- <h6 class="fw-bold text-primary mb-3">
+                        <i class="ti ti-hierarchy-2 me-2"></i>Hirarki Persetujuan
+                    </h6>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="bg-white">
+                                <tr>
+                                    <th rowspan="2" class="text-center" style="width: 5%">Level</th>
+                                    <th rowspan="2">Pejabat</th>
+                                    <th colspan="3" class="text-center">Persetujuan</th>
+                                </tr>
+                                <tr>
+                                    <th class="text-center">Tanggal</th>
+                                    <th class="text-center">Keterangan</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($hirarki_persetujuan as $list)
+                                <tr>
+                                    <td class="text-center">
+                                        @if($list->approval_active==1)
+                                        <span class="badge rounded-pill bg-success">{{ $list->approval_level }}</span>
+                                        @else
+                                        <span class="badge rounded-pill bg-secondary">{{ $list->approval_level }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ $list->get_profil_employee->nm_lengkap }}</div>
+                                        <div class="text-muted small">{{ $list->get_profil_employee->get_jabatan->nm_jabatan }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        {{ (empty($list->approval_date)) ? "-" : date('d-m-Y', strtotime($list->approval_date))  }}
+                                    </td>
+                                    <td>{{ $list->approval_remark }}</td>
+                                    <td class="text-center">
+                                        @if($list->approval_status==1)
+                                        <span class="badge bg-light-success text-success">Approved</span>
+                                        @elseif($list->approval_status==2)
+                                        <span class="badge bg-light-danger text-danger">Rejected</span>
+                                        @else
+                                        <span class="badge bg-light-warning text-warning">Pending</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div> --}}
+
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="ti ti-edit me-2"></i>Form Persetujuan
+                    </h6>
+                    <div class="row align-items-center mb-3">
+                        <label class="col-sm-4 col-form-label text-muted">Status Persetujuan</label>
+                        <div class="col-sm-8">
+                            <select class="form-control select2" id="pil_persetujuan" name="pil_persetujuan" style="width: 100%;" required>
+                                <option value="1">Setuju</option>
+                                <option value="2">Tolak</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-sm-12">
+                            <label class="text-muted mb-1">Deskripsi Persetujuan</label>
+                            <textarea class="form-control" name="inp_keterangan" id="inp_keterangan" rows="3" required></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer border-0">
+    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+    <button type="submit" class="btn btn-primary">
+        <i class="ti ti-device-floppy me-1"></i>Simpan Persetujuan
+    </button>
+</div>
+</form>
+<script type="text/javascript">
+    $(document).ready(function()
+    {
+        $(".select2").select2({
+            dropdownParent: $('#modalFormPersetujuan')
+        });
+        window.setTimeout(function () { $("#success-alert").alert('close'); }, 2000);
+    });
+    document.querySelector('#myForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        Swal.fire({
+            title: 'Yakin data akan disimpan?',
+            text: "Submit pengajuan persetujuan ini!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Simpan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.submit();
+            }
+        });
+    });
+</script>

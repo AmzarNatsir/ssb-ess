@@ -28,6 +28,13 @@ class Resign extends Model
     {
         return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
     }
+
+    // Legacy alias used by approval module.
+    public function getKaryawan()
+    {
+        return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
+    }
+
     public function current_approve()
     {
         return $this->belongsTo(Karyawan::class, 'current_approval_id', 'id');

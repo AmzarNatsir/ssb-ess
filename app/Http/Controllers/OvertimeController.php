@@ -55,7 +55,10 @@ class OvertimeController extends Controller
             return redirect()->back()->with('error', 'Employee data not found.');
         }
 
-        return view('overtime.create', compact('karyawan'));
+        $group = 7;
+        $isApprovalMatrixConfigured = HrdFunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
+
+        return view('overtime.create', compact('karyawan', 'isApprovalMatrixConfigured'));
     }
 
     /**
@@ -79,11 +82,11 @@ class OvertimeController extends Controller
                 $request->validate([
                     'tgl_pengajuan'            => 'required|date',
                     'jam_mulai'             => 'required|date_format:H:i',
-                    'jam_selesai'           => 'required|date_format:H:i|after:jam_mulai',
+                    'jam_selesai'           => 'required|date_format:H:i',
                     'deskripsi_pekerjaan'  => 'required|string|max:1000',
                     'file_surat_lembur'     => 'required|file|mimes:jpg,jpeg,png|max:5120',
                 ], [
-                    'jam_selesai.after'     => 'End time must be after start time.',
+                    'jam_selesai.date_format' => 'End time format must be HH:MM.',
                     'file_surat_lembur.mimes' => 'Only JPG, JPEG, and PNG images are allowed.',
                 ]);
 
@@ -179,11 +182,11 @@ class OvertimeController extends Controller
         $request->validate([
             'tgl_pengajuan'           => 'required|date',
             'jam_mulai'            => 'required|date_format:H:i',
-            'jam_selesai'          => 'required|date_format:H:i|after:jam_mulai',
+            'jam_selesai'          => 'required|date_format:H:i',
             'deskripsi_pekerjaan' => 'required|string|max:1000',
             'file_surat_perintah_lembur'    => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
         ], [
-            'jam_selesai.after'       => 'End time must be after start time.',
+            'jam_selesai.date_format' => 'End time format must be HH:MM.',
             'file_surat_perintah_lembur.mimes' => 'Only JPG, JPEG, and PNG images are allowed.',
         ]);
 
@@ -307,6 +310,12 @@ class OvertimeController extends Controller
     {
         $s = Carbon::createFromFormat('H:i', $start);
         $e = Carbon::createFromFormat('H:i', $end);
+
+        // Allow overnight overtime periods, e.g. 20:00 -> 03:00 next day.
+        if ($e->lessThanOrEqualTo($s)) {
+            $e->addDay();
+        }
+
         return round($s->diffInMinutes($e) / 60, 2);
     }
 }

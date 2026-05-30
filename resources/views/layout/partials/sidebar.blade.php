@@ -92,9 +92,25 @@
                             <a href="{{ route('payroll.index') }}"><i
                                     class="ti ti-file-check"></i><span>Payroll</span></a>
                         </li>
+
                         <li class="{{ Request::is('resign', 'resign/*') ? 'active' : '' }}">
                             <a href="{{ route('resign.index') }}"><i
                                     class="ti ti-file-report"></i><span>Resign</span></a>
+                        </li>
+
+                        @php
+                            $approvalCount = \App\Models\Approval::where('approval_active', 1)
+                                ->where('approval_by_employee', auth()->user()->karyawan->id)
+                                ->count();
+                        @endphp
+                        <li class="{{ Request::is('approval*', 'hrd/persetujuan*') ? 'active' : '' }}">
+                            <a href="{{ route('approval.index') }}" class="d-flex align-items-center">
+                                <i class="ti ti-checkup-list"></i>
+                                <span>Approval</span>
+                                @if ($approvalCount > 0)
+                                    <span class="badge bg-danger ms-auto">{{ $approvalCount }}</span>
+                                @endif
+                            </a>
                         </li>
                     </ul>
                 </li>

@@ -103,6 +103,16 @@ Route::middleware(['auth', 'must_change_password'])->group(function () {
     Route::get('/payroll/{id}/detail', [\App\Http\Controllers\PayrollController::class, 'show'])->name('payroll.show');
     Route::get('/payroll/{id}/print', [\App\Http\Controllers\PayrollController::class, 'print'])->name('payroll.print');
 
+    // Approval
+    Route::get('/approval', [\App\Http\Controllers\PersetujuanController::class, 'index'])->name('approval.index');
+    Route::get('/approval/form-approval/{id}', [\App\Http\Controllers\PersetujuanController::class, 'form_approval'])->name('approval.form');
+    Route::post('/approval/store-approval', [\App\Http\Controllers\PersetujuanController::class, 'store_approval'])->name('approval.store');
+
+    // Legacy approval routes kept for compatibility with existing forms/scripts
+    Route::get('/hrd/persetujuan', [\App\Http\Controllers\PersetujuanController::class, 'index'])->name('approval.legacy.index');
+    Route::get('/hrd/persetujuan/formApproval/{id}', [\App\Http\Controllers\PersetujuanController::class, 'form_approval'])->name('approval.legacy.form');
+    Route::post('/hrd/persetujuan/storeApproval', [\App\Http\Controllers\PersetujuanController::class, 'store_approval'])->name('approval.legacy.store');
+
     // Media Proxy
     Route::get('/media/proxy', [\App\Http\Controllers\MediaController::class, 'proxy'])->name('media.proxy');
 });
