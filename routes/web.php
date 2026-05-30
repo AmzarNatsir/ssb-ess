@@ -108,6 +108,12 @@ Route::middleware(['auth', 'must_change_password'])->group(function () {
     Route::get('/approval/form-approval/{id}', [\App\Http\Controllers\PersetujuanController::class, 'form_approval'])->name('approval.form');
     Route::post('/approval/store-approval', [\App\Http\Controllers\PersetujuanController::class, 'store_approval'])->name('approval.store');
 
+    // Progress notifications
+    Route::get('/notifications/progress/read', [\App\Http\Controllers\ProgressNotificationController::class, 'markRead'])
+        ->name('notifications.progress.read');
+    Route::post('/notifications/progress/mark-all-read', [\App\Http\Controllers\ProgressNotificationController::class, 'markAllRead'])
+        ->name('notifications.progress.mark-all-read');
+
     // Legacy approval routes kept for compatibility with existing forms/scripts
     Route::get('/hrd/persetujuan', [\App\Http\Controllers\PersetujuanController::class, 'index'])->name('approval.legacy.index');
     Route::get('/hrd/persetujuan/formApproval/{id}', [\App\Http\Controllers\PersetujuanController::class, 'form_approval'])->name('approval.legacy.form');

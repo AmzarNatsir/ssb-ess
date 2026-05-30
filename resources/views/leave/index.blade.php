@@ -91,7 +91,29 @@
                                         <span class="badge badge-soft-warning badge-sm mb-1">
                                             <i class="ti ti-point-filled"></i>{{ HrdConstants::STATUS_CUTI[$leave->sts_pengajuan] ?? 'Unknown' }}
                                         </span>
-                                        @if($leave->get_current_approve)
+                                        @php
+                                            $level1Approval = $leave->approvals->firstWhere('approval_level', 1);
+                                            $level2Approval = $leave->approvals->firstWhere('approval_level', 2);
+                                            $level1Approved = $level1Approval && (
+                                                (($level1Approval->approval_status ?? null) == 1)
+                                                || !empty($level1Approval->approval_date)
+                                            );
+                                        @endphp
+
+                                        @if($level1Approved)
+                                            <div class="small text-success">
+                                                Level 1 approved -> by. <span class="fw-semibold">{{ $level1Approval->get_profil_employee->nm_lengkap ?? '-' }}</span>
+                                            </div>
+                                            @if($level2Approval)
+                                                <div class="small text-muted">
+                                                    Waiting: Level 2 -> by. <span class="text-primary">{{ $level2Approval->get_profil_employee->nm_lengkap ?? '-' }}</span>
+                                                </div>
+                                            @elseif($leave->get_current_approve)
+                                                <div class="small text-muted">
+                                                    Waiting: <span class="text-primary">{{ $leave->get_current_approve->nm_lengkap }}</span>
+                                                </div>
+                                            @endif
+                                        @elseif($leave->get_current_approve)
                                             <div class="small text-muted">
                                                 Waiting: <span class="text-primary">{{ $leave->get_current_approve->nm_lengkap }}</span>
                                             </div>

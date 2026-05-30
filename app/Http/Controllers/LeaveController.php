@@ -27,7 +27,7 @@ class LeaveController extends Controller
             return redirect()->back()->with('error', 'Employee data not found.');
         }
         // Pending Requests (sts_pengajuan = 1)
-        $pendingRequests = Leave::with(['jenisCuti', 'get_current_approve'])
+        $pendingRequests = Leave::with(['jenisCuti', 'get_current_approve', 'approvals.get_profil_employee'])
             ->where('id_karyawan', $karyawan->id)
             ->where('sts_pengajuan', 1)
             ->orderBy('tgl_pengajuan', 'desc')

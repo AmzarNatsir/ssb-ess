@@ -79,11 +79,48 @@
             <!-- pages -->
             <div class="header-line"></div>
             <!-- Notification Dropdown -->
-            <!-- <div class="header-item">
+            <div class="header-item">
                 <div class="dropdown me-2">
+                    <a href="javascript:void(0);" class="btn topbar-link position-relative" data-bs-toggle="dropdown" data-bs-offset="0,22" aria-haspopup="false" aria-expanded="false">
+                        <i class="ti ti-bell fs-16"></i>
+                        @if(($progressNotifications['unreadCount'] ?? 0) > 0)
+                            <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" style="font-size: 10px; min-width: 18px;">
+                                {{ $progressNotifications['unreadCount'] > 99 ? '99+' : $progressNotifications['unreadCount'] }}
+                            </span>
+                        @endif
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg p-0" style="min-width: 360px;">
+                        <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                            <h6 class="mb-0 fw-semibold">Notifikasi Progress Pengajuan</h6>
+                            <form action="{{ route('notifications.progress.mark-all-read') }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-light" {{ ($progressNotifications['unreadCount'] ?? 0) === 0 ? 'disabled' : '' }}>
+                                    Mark all as read
+                                </button>
+                            </form>
+                        </div>
 
+                        <div style="max-height: 360px; overflow-y: auto;">
+                            @forelse(($progressNotifications['items'] ?? collect()) as $notif)
+                                <a href="{{ $notif['read_url'] }}" class="dropdown-item py-3 px-3 border-bottom bg-light">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold text-dark">{{ $notif['title'] }}</div>
+                                            <div class="small text-muted">Status: <span class="fw-medium">{{ $notif['status_label'] }}</span></div>
+                                            <div class="small text-muted mt-1">{{ $notif['updated_at_human'] }}</div>
+                                        </div>
+                                        <span class="badge bg-light-warning text-warning">Baru</span>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="p-3 text-center text-muted small">
+                                    Semua notifikasi sudah terbaca.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
                 </div>
-            </div> -->
+            </div>
 
             <!-- User Dropdown -->
             <div class="dropdown profile-dropdown d-flex align-items-center justify-content-center">
