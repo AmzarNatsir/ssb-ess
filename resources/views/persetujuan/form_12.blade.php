@@ -1,10 +1,10 @@
-<div class="modal-header bg-primary text-white border-0">
+﻿<div class="modal-header bg-primary text-white border-0">
     <h5 class="modal-title fw-bold" id="exampleModalCenteredScrollableTitle">
         <i class="ti ti-cash-banknote me-2"></i>Form Persetujuan Penggajian Karyawan
     </h5>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-<form action="{{ route('approval.store') }}" method="post" onsubmit="return konfirm()">
+<form action="{{ route('approval.store') }}" method="post" id="myForm">
 {{ csrf_field() }}
 <input type="hidden" name="id_pengajuan" value="{{ $data_approval->id }}">
 <input type="hidden" name="key_approval" value="{{ $data_approval->approval_key }}">
@@ -249,14 +249,7 @@
         });
         window.setTimeout(function () { $("#success-alert").alert('close'); }, 2000);
     });
-    function konfirm()
-    {
-        var psn = confirm("Yakin data akan disimpan ?");
-        if(psn==true)
-        {
-            return true;
-        } else {
-            return false;
-        }
-    }
 </script>
+
+
+

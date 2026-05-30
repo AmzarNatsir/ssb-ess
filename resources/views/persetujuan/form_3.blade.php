@@ -4,7 +4,7 @@
     </h5>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-<form action="{{ route('approval.store') }}" method="post" onsubmit="return konfirm()">
+<form action="{{ route('approval.store') }}" method="post" id="myForm">
 {{ csrf_field() }}
 <input type="hidden" name="id_pengajuan" value="{{ $data_approval->id }}">
 <input type="hidden" name="key_approval" value="{{ $data_approval->approval_key }}">
@@ -134,7 +134,7 @@
             <div class="row align-items-center mb-3">
                 <label class="col-sm-4 col-form-label text-muted">Karyawan Pengganti</label>
                 <div class="col-sm-8">
-                    <select class="form-control select2" id="pil_pengganti" name="pil_pengganti" style="width: 100%;" required>
+                    <select class="form-control select2" id="pil_pengganti" name="pil_pengganti" style="width: 100%;">
                         <option value="">Pilihan Karyawan</option>
                         @foreach ($listKaryawan as $list)
                         <option value="{{ $list->id }}">{{ $list->nik }} - {{ $list->nm_lengkap }}</option>
@@ -169,21 +169,12 @@
 </div>
 </form>
 <script type="text/javascript">
-    $(document).ready(function()
-    {
+    $(document).ready(function() {
         $(".select2").select2({
             dropdownParent: $('#modalFormPersetujuan')
         });
         window.setTimeout(function () { $("#success-alert").alert('close'); }, 2000);
     });
-    function konfirm()
-    {
-        var psn = confirm("Yakin data akan disimpan ?");
-        if(psn==true)
-        {
-            return true;
-        } else {
-            return false;
-        }
-    }
 </script>
+
+

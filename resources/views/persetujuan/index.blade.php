@@ -88,6 +88,166 @@
  </div>
 <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function () {
+        function hasSwalFire() {
+            return typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function';
+        }
+
+        function toTitleCase(value) {
+            if (!value) {
+                return '';
+            }
+
+            return value
+                .replace(/[_-]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .replace(/\b\w/g, function (char) { return char.toUpperCase(); });
+        }
+
+        function getFieldLabel(form, field) {
+            if (!field) {
+                return 'Data Wajib';
+            }
+
+            // Prefer explicit label[for=id]
+            if (field.id) {
+                var forLabel = form.querySelector('label[for="' + field.id + '"]');
+                if (forLabel) {
+                    return forLabel.textContent.replace('*', '').trim();
+                }
+            }
+
+            // Fallback to nearest row label for Bootstrap-like forms
+            var row = field.closest('.row');
+            if (row) {
+                var rowLabel = row.querySelector('label');
+                if (rowLabel) {
+                    return rowLabel.textContent.replace('*', '').trim();
+                }
+            }
+
+            // Fallback to previous label inside the same group/card
+            var group = field.closest('.form-group, .card-body, .col-sm-8, .col-md-8, .col-lg-8');
+            if (group) {
+                var prev = field.previousElementSibling;
+                while (prev) {
+                    if (prev.tagName && prev.tagName.toLowerCase() === 'label') {
+                        return prev.textContent.replace('*', '').trim();
+                    }
+                    prev = prev.previousElementSibling;
+                }
+            }
+
+            if (field.name) {
+                return toTitleCase(field.name);
+            }
+
+            return 'Data Wajib';
+        }
+
+        function focusField(field) {
+            if (!field) {
+                return;
+            }
+
+            if (window.jQuery && window.jQuery(field).hasClass('select2-hidden-accessible')) {
+                window.jQuery(field).select2('open');
+                return;
+            }
+
+            field.focus();
+        }
+
+        function showWarning(text, onClose) {
+            if (hasSwalFire()) {
+                window.Swal.fire({
+                    icon: 'warning',
+                    title: 'Form Belum Lengkap',
+                    text: text,
+                    confirmButtonText: 'OK'
+                }).then(function () {
+                    if (typeof onClose === 'function') {
+                        onClose();
+                    }
+                });
+                return;
+            }
+
+            alert(text);
+            if (typeof onClose === 'function') {
+                onClose();
+            }
+        }
+
+        function validateApprovalForm(form) {
+            var pilPengganti = form.querySelector('#pil_pengganti');
+            if (pilPengganti && !pilPengganti.value) {
+                showWarning('Silakan lengkapi: ' + getFieldLabel(form, pilPengganti), function () {
+                    focusField(pilPengganti);
+                });
+                return false;
+            }
+
+            var ket = form.querySelector('#inp_keterangan');
+            if (ket && !ket.value.trim()) {
+                showWarning('Silakan lengkapi: ' + getFieldLabel(form, ket), function () {
+                    focusField(ket);
+                });
+                return false;
+            }
+
+            if (!form.checkValidity()) {
+                var invalidField = null;
+                var elements = form.elements || [];
+                for (var i = 0; i < elements.length; i++) {
+                    if (typeof elements[i].checkValidity === 'function' && !elements[i].checkValidity()) {
+                        invalidField = elements[i];
+                        break;
+                    }
+                }
+
+                var fieldName = getFieldLabel(form, invalidField);
+
+                showWarning('Silakan lengkapi: ' + fieldName, function () {
+                    if (!invalidField) {
+                        return;
+                    }
+                    focusField(invalidField);
+                });
+
+                return false;
+            }
+
+            return true;
+        }
+
+        function confirmAndSubmit(form) {
+            if (!hasSwalFire()) {
+                var ok = window.confirm('Yakin data akan disimpan?');
+                if (ok) {
+                    form.dataset.confirmed = '1';
+                    form.submit();
+                }
+                return;
+            }
+
+            window.Swal.fire({
+                title: 'Yakin data akan disimpan?',
+                text: 'Submit pengajuan persetujuan ini!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Simpan!',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    form.dataset.confirmed = '1';
+                    form.submit();
+                }
+            });
+        }
+
         var alertEl = document.getElementById('success-alert');
         if (alertEl) {
             window.setTimeout(function () {
@@ -97,6 +257,61 @@
                     alertEl.remove();
                 }
             }, 2000);
+        }
+
+        // Centralized handler for approval forms loaded dynamically into modal.
+        // This guarantees submit works even when inline scripts in loaded partials are not executed.
+        if (!window.__approvalSubmitBinding) {
+            window.__approvalSubmitBinding = true;
+
+            // Strong fallback: handle submit button click directly.
+            // Some browsers/flows can skip submit event when dynamic modal content has mixed handlers.
+            document.addEventListener('click', function (event) {
+                var btn = event.target.closest('button[type="submit"]');
+                if (!btn) {
+                    return;
+                }
+
+                var form = btn.form;
+                if (!form || form.id !== 'myForm') {
+                    return;
+                }
+
+                if (form.dataset.confirmed === '1') {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                if (!validateApprovalForm(form)) {
+                    return;
+                }
+
+                confirmAndSubmit(form);
+            }, true);
+
+            document.addEventListener('submit', function (event) {
+                var form = event.target;
+                if (!form || form.id !== 'myForm') {
+                    return;
+                }
+
+                if (form.dataset.confirmed === '1') {
+                    return;
+                }
+
+                event.preventDefault();
+                // Ensure only this centralized handler runs for dynamically loaded forms.
+                // Some partials still attach their own submit listeners and can block submission.
+                event.stopImmediatePropagation();
+
+                if (!validateApprovalForm(form)) {
+                    return;
+                }
+
+                confirmAndSubmit(form);
+            }, true);
         }
     });
 

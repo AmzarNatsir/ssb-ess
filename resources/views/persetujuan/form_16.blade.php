@@ -1,4 +1,4 @@
-<div class="modal-header bg-primary text-white border-0">
+﻿<div class="modal-header bg-primary text-white border-0">
     <h5 class="modal-title fw-bold" id="exampleModalCenteredScrollableTitle">
         <i class="ti ti-clipboard-text me-2"></i>Form Persetujuan Pengajuan Exit Interviews
     </h5>
@@ -301,22 +301,5 @@
         });
         window.setTimeout(function () { $("#success-alert").alert('close'); }, 2000);
     });
-    document.querySelector('#myForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        Swal.fire({
-            title: 'Yakin data akan disimpan?',
-            text: "Submit pengajuan persetujuan ini!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Simpan!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.submit();
-            }
-        });
-    });
 </script>
+
