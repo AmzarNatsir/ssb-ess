@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Karyawan;
+use App\Models\PerubahanStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -102,7 +103,7 @@ class MediaController extends Controller
             'pelamar_photo'   => '/hrd/recruitment/photo/',
             'pelamar_dokumen' => '/hrd/employee/dokument/',
             'karyawan_photo'  => '/hrd/photo/',
-            'hasil_evaluasi'  => '/hrd/hasil-evaluasi/',
+            'hasil_evaluasi'  => '/api/media/hasil-evaluasi/',
         ];
         $subPath = $endpoints[$type] ?? $endpoints['memo'];
         return $this->sendProxyRequest($subPath, $path);
@@ -153,6 +154,13 @@ class MediaController extends Controller
 
     public function hasil_evaluasi($id)
     {
-        return $this->sendProxyRequest('/hrd/hasil-evaluasi/', (string) $id);
+        $pengajuan = PerubahanStatus::select('id', 'file_hasil_evaluasi')->find($id);
+        $filename = $pengajuan?->file_hasil_evaluasi;
+
+        if (empty($filename)) {
+            abort(404);
+        }
+
+        return $this->sendProxyRequest('/api/media/hasil-evaluasi/', $filename);
     }
 }
