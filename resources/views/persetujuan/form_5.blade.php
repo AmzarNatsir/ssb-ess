@@ -23,7 +23,7 @@
                     </h6>
                     <div class="d-flex align-items-center mb-3">
                         @if(!empty($profil->get_profil->photo))
-                            <img src="{{ url(Storage::url('hrd/photo/'.$profil->get_profil->photo)) }}" class="rounded-circle me-3" alt="avatar" style="width: 80px; height: 80px; object-fit: cover;">
+                            <img src="{{ url('/hrd/photo/'.$profil->id_karyawan) }}" class="rounded-circle me-3" alt="avatar" style="width: 80px; height: 80px; object-fit: cover;">
                         @else
                             <a href="{{ asset('assets/images/user/1.jpg') }}" data-fancybox data-caption="avatar">
                             <img src="{{ asset('assets/images/user/1.jpg') }}" class="rounded-circle me-3" alt="avatar" style="width: 80px; height: 80px; object-fit: cover;"></a>
@@ -87,7 +87,7 @@
                         <i class="ti ti-paperclip me-2"></i>Lampiran Hasil Evaluasi
                     </h6>
                     <div class="mb-3">
-                        <a href="{{ url('hrd/perubahanstatus/download/hasil_evaluasi/'.$profil->id) }}" target="_new" class="btn btn-outline-danger w-100">
+                        <a href="{{ url('/hrd/hasil-evaluasi/'.$profil->id) }}" target="_new" class="btn btn-outline-danger w-100">
                             <i class="ti ti-download me-1"></i>Download File Hasil Evaluasi Kerja
                         </a>
                     </div>

@@ -118,6 +118,8 @@ Route::middleware(['auth', 'must_change_password'])->group(function () {
     Route::get('/hrd/persetujuan', [\App\Http\Controllers\PersetujuanController::class, 'index'])->name('approval.legacy.index');
     Route::get('/hrd/persetujuan/formApproval/{id}', [\App\Http\Controllers\PersetujuanController::class, 'form_approval'])->name('approval.legacy.form');
     Route::post('/hrd/persetujuan/storeApproval', [\App\Http\Controllers\PersetujuanController::class, 'store_approval'])->name('approval.legacy.store');
+    Route::get('/hrd/photo/{id_karyawan}', [\App\Http\Controllers\MediaController::class, 'photo'])->name('approval.legacy.photo');
+    Route::get('/hrd/hasil-evaluasi/{id}', [\App\Http\Controllers\MediaController::class, 'hasil_evaluasi'])->name('approval.legacy.hasil-evaluasi');
 
     // Media Proxy
     Route::get('/media/proxy', [\App\Http\Controllers\MediaController::class, 'proxy'])->name('media.proxy');

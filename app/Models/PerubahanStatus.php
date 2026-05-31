@@ -30,6 +30,11 @@ class PerubahanStatus extends Model
         return $this->belongsTo(Karyawan::class, 'current_approval_id', 'id');
     }
 
+    public function get_status_karyawan($id)
+    {
+        return \App\Helpers\HrdConstants::STATUS_KARYAWAN[$id] ?? '';
+    }
+
     public function get_create_by($id)
     {
         // return $this->belongsTo('App\User', 'surat_by', 'id');

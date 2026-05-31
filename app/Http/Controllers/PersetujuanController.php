@@ -1095,4 +1095,5 @@ class PersetujuanController extends Controller
         }
         return $nomor_urut."/".$nomor_awal;
     }
+
 }
