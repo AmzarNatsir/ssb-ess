@@ -21,16 +21,18 @@
         <div class="card-body">
             <div class="d-flex align-items-center mb-3">
                 <i class="ti ti-calendar text-success me-2"></i>
-                <h6 class="fw-bold text-primary mb-0">Daftar Gaji Karyawan - Periode {{ \App\Helpers\Hrdhelper::get_nama_bulan($profil->bulan) }} {{ $profil->tahun }}</h6>
+                <h6 class="fw-bold text-primary mb-0">Daftar Gaji Karyawan - Periode {{ \App\Helpers\HrdFunction::get_nama_bulan($profil->bulan) }} {{ $profil->tahun }}</h6>
             </div>
             <div class="accordion" id="accordionExample">
+                @php $total_karyawan_non_dept = count($data_non_dept); @endphp
+                @if($total_karyawan_non_dept > 0)
                 <div class="accordion-item border mb-2">
-                    <h2 class="accordion-header" id="headingOne">
-                        <button class="accordion-button collapsed fw-semibold text-uppercase" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                            <i class="ti ti-users me-2"></i>Non Departemen
+                    <h2 class="accordion-header" id="headingNonDept">
+                        <button class="accordion-button collapsed fw-semibold text-uppercase" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNonDept" aria-expanded="false" aria-controls="collapseNonDept">
+                            <i class="ti ti-users me-2"></i>Direksi
                         </button>
                     </h2>
-                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                    <div id="collapseNonDept" class="accordion-collapse collapse" aria-labelledby="headingNonDept" data-bs-parent="#accordionExample">
                         <div class="accordion-body p-2">
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover table-bordered mb-0" style="font-size: 13px">
@@ -85,11 +87,36 @@
                         </div>
                     </div>
                 </div>
+                @endif
+
                 @foreach ($data_dept as $r)
+                @php
+                $total_karyawan_dept = count($r['list_data']);
+                $total_thp_dept = 0;
+                foreach ($r['list_data'] as $calc) {
+                    $gapok = $calc['gaji_pokok'] ?? 0;
+                    $pot_bpjs_ks = $calc['bpjsks_karyawan'] ?? 0;
+                    $pot_jht = $calc['bpjstk_jht_karyawan'] ?? 0;
+                    $pot_jp = $calc['bpjstk_jp_karyawan'] ?? 0;
+                    $pot_jkm = $calc['bpjstk_jkm_karyawan'] ?? 0;
+                    $pot_sedekah = $calc['pot_sedekah'] ?? 0;
+                    $pot_pkk = $calc['pot_pkk'] ?? 0;
+                    $pot_air = $calc['pot_air'] ?? 0;
+                    $pot_rumah = $calc['pot_rumah'] ?? 0;
+                    $pot_toko_alif = $calc['pot_toko_alif'] ?? 0;
+                    $tot_potongan = $pot_bpjs_ks + $pot_jht + $pot_jp + $pot_jkm + $pot_sedekah + $pot_pkk + $pot_air + $pot_rumah + $pot_toko_alif;
+                    $tunj_perusahaan = $calc['tunj_perusahaan'] ?? 0;
+                    $total_tunj_perusahaan_bpjs = $calc['pot_tunj_perusahaan'] ?? 0;
+                    $gaji_bruto = $gapok + $tunj_perusahaan;
+                    $total_thp_dept += ($gaji_bruto - $total_tunj_perusahaan_bpjs - $tot_potongan);
+                }
+                @endphp
+                @if($total_karyawan_dept > 0)
                 <div class="accordion-item border mb-2">
                     <h2 class="accordion-header" id="heading{{ $r['id'] }}">
                         <button class="accordion-button collapsed fw-semibold text-uppercase" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $r['id'] }}" aria-expanded="false" aria-controls="collapse{{ $r['id'] }}">
                             <i class="ti ti-building me-2"></i>{{ $r['nm_dept'] }}
+                            <span class="ms-3 text-muted small text-capitalize">Total Karyawan: {{ number_format($total_karyawan_dept, 0) }} | Total THP: {{ number_format($total_thp_dept, 0) }}</span>
                         </button>
                     </h2>
                     <div id="collapse{{ $r['id'] }}" class="accordion-collapse collapse" aria-labelledby="heading{{ $r['id'] }}" data-bs-parent="#accordionExample">
@@ -110,7 +137,10 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @php $nom_dept = 1; @endphp
+                                        @php
+                                        $nom_dept = 1;
+                                        $total_thp_dept = 0;
+                                        @endphp
                                         @foreach ($r['list_data'] as $r2)
                                         @php
                                         $gapok = $r2['gaji_pokok'] ?? 0;
@@ -128,6 +158,7 @@
                                         $total_tunj_perusahaan_bpjs = $r2['pot_tunj_perusahaan'] ?? 0;
                                         $gaji_bruto = $gapok + $tunj_perusahaan;
                                         $thp = $gaji_bruto - $total_tunj_perusahaan_bpjs  - $tot_potongan;
+                                        $total_thp_dept += $thp;
                                         @endphp
                                         <tr>
                                             <td class="text-center">{{ $nom_dept++ }}</td>
@@ -141,12 +172,18 @@
                                             <td class="text-end fw-bold text-primary">{{ number_format($thp, 0) }}</td>
                                         </tr>
                                         @endforeach
+                                        <tr class="table-light fw-semibold">
+                                            <td colspan="7">Summary {{ $r['nm_dept'] }} | Total Karyawan: {{ number_format($total_karyawan_dept, 0) }}</td>
+                                            <td class="text-end">Total THP</td>
+                                            <td class="text-end text-primary">{{ number_format($total_thp_dept, 0) }}</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
+                @endif
                 @endforeach
             </div>
         </div>
