@@ -1,0 +1,289 @@
+openapi: 3.0.3
+
+info:
+  title: SSB Employee – Document API
+  description: |
+    API untuk mengambil / streaming file dokumen karyawan yang tersimpan di
+    `storage/app/public/`.
+
+    ## Autentikasi
+    Semua endpoint memerlukan **Bearer Token** di header `Authorization`.
+
+    ```
+    Authorization: Bearer <token>
+    ```
+
+    Token dibuat via Artisan:
+    ```bash
+    php artisan api:token:generate "Nama Token" --expires=2027-01-01
+    ```
+
+    ## Tipe Dokumen
+    | Type | Folder di storage/app/public |
+    |---|---|
+    | `pinjaman` | `pinjaman_dokumen/` |
+    | `training` | `training_evidence/` |
+    | `overtime` | `overtime_orders/` |
+    | `perdis`   | `perdis_documents/` |
+    | `resign`   | `resign_dokumen/`   |
+
+  version: "1.0.0"
+  contact:
+    name: SSB HRD
+  license:
+    name: Internal Use Only
+
+servers:
+  - url: "{scheme}://{host}/api"
+    description: Server utama
+    variables:
+      scheme:
+        enum: [https, http]
+        default: https
+      host:
+        default: employee.ssb.co.id
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: HEX64
+      description: Token 64 karakter hex yang dibuat dengan `php artisan api:token:generate`
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Unauthorized: token tidak valid."
+
+    FileInfoData:
+      type: object
+      properties:
+        filename:
+          type: string
+          example: "1717401600_bukti_lembur.pdf"
+        type:
+          type: string
+          example: "overtime"
+        folder:
+          type: string
+          example: "overtime_orders"
+        mime_type:
+          type: string
+          example: "application/pdf"
+        size_bytes:
+          type: integer
+          example: 204800
+        last_modified:
+          type: string
+          format: date-time
+          example: "2026-06-03 10:30:00"
+        url:
+          type: string
+          format: uri
+          example: "https://employee.ssb.co.id/storage/overtime_orders/1717401600_bukti_lembur.pdf"
+
+    FileInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/FileInfoData'
+
+  parameters:
+    TypeParam:
+      name: type
+      in: path
+      required: true
+      description: |
+        Tipe / kategori dokumen:
+        - `pinjaman` → folder `pinjaman_dokumen`
+        - `training` → folder `training_evidence`
+        - `overtime` → folder `overtime_orders`
+        - `perdis`   → folder `perdis_documents`
+        - `resign`   → folder `resign_dokumen`
+      schema:
+        type: string
+        enum: [pinjaman, training, overtime, perdis, resign]
+
+    FilenameParam:
+      name: filename
+      in: path
+      required: true
+      description: Nama file (tanpa path). Contoh `1717401600_surat_resign.pdf`
+      schema:
+        type: string
+        example: "1717401600_surat_resign.pdf"
+
+security:
+  - BearerAuth: []
+
+paths:
+
+  /documents/{type}/{filename}:
+    get:
+      operationId: serveDocument
+      tags: [Dokumen]
+      summary: Streaming / tampilkan file
+      description: |
+        Mengembalikan konten file secara langsung (streaming).
+        Browser / klien dapat menampilkan file inline (gambar, PDF) atau
+        memicunya untuk diunduh tergantung `Content-Disposition`.
+      parameters:
+        - $ref: '#/components/parameters/TypeParam'
+        - $ref: '#/components/parameters/FilenameParam'
+      responses:
+        "200":
+          description: Konten file
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: "application/pdf"
+            Content-Length:
+              schema:
+                type: integer
+              example: 204800
+            Content-Disposition:
+              schema:
+                type: string
+              example: 'inline; filename="bukti_lembur.pdf"'
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Token tidak ada / tidak valid / kadaluarsa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing:
+                  summary: Token tidak ditemukan
+                  value:
+                    success: false
+                    message: "Unauthorized: token tidak ditemukan."
+                invalid:
+                  summary: Token tidak valid
+                  value:
+                    success: false
+                    message: "Unauthorized: token tidak valid."
+                expired:
+                  summary: Token kadaluarsa
+                  value:
+                    success: false
+                    message: "Unauthorized: token sudah kadaluarsa."
+        "404":
+          description: File atau tipe dokumen tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                unknown_type:
+                  summary: Tipe tidak dikenal
+                  value:
+                    success: false
+                    message: "Tipe dokumen 'x' tidak dikenal. Gunakan: pinjaman, training, overtime, perdis, resign"
+                not_found:
+                  summary: File tidak ada
+                  value:
+                    success: false
+                    message: "File tidak ditemukan."
+
+      # Contoh per tipe dokumen
+      x-examples:
+        dokumen_pinjaman:
+          summary: Ambil dokumen pinjaman karyawan
+          value:
+            type: pinjaman
+            filename: "1717401600_sk_pinjaman.pdf"
+        dokumen_training:
+          summary: Ambil evidence training
+          value:
+            type: training
+            filename: "1717401600_foto_training.jpg"
+        dokumen_overtime:
+          summary: Ambil surat perintah lembur
+          value:
+            type: overtime
+            filename: "1717401600_spl.pdf"
+        dokumen_perdis:
+          summary: Ambil dokumen perjalanan dinas
+          value:
+            type: perdis
+            filename: "1717401600_tiket_pesawat.pdf"
+        dokumen_resign:
+          summary: Ambil surat resign
+          value:
+            type: resign
+            filename: "1717401600_surat_pengunduran_diri.pdf"
+
+  /documents/{type}/{filename}/info:
+    get:
+      operationId: documentInfo
+      tags: [Dokumen]
+      summary: Metadata file (tanpa unduh konten)
+      description: |
+        Mengembalikan informasi metadata file: ukuran, mime type, waktu modifikasi,
+        dan URL publik. Berguna untuk validasi keberadaan file sebelum menampilkan.
+      parameters:
+        - $ref: '#/components/parameters/TypeParam'
+        - $ref: '#/components/parameters/FilenameParam'
+      responses:
+        "200":
+          description: Metadata file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileInfoResponse'
+              example:
+                success: true
+                data:
+                  filename: "1717401600_bukti_lembur.pdf"
+                  type: "overtime"
+                  folder: "overtime_orders"
+                  mime_type: "application/pdf"
+                  size_bytes: 204800
+                  last_modified: "2026-06-03 10:30:00"
+                  url: "https://employee.ssb.co.id/storage/overtime_orders/1717401600_bukti_lembur.pdf"
+        "401":
+          description: Token tidak ada / tidak valid / kadaluarsa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: File atau tipe dokumen tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Dokumen
+    description: |
+      Endpoint untuk akses file dokumen karyawan dari storage server.
+      Semua endpoint memerlukan Bearer Token.

@@ -62,8 +62,11 @@ class LeaveController extends Controller
         }
 
         $leaveTypes = JenisCuti::leave()->where('status', 1)->get();
+        $group = 3;
+        $approvalMatrix = HrdFunction::set_approval_new($group, $karyawan->id_departemen)->load('getPejabat.jabatan');
+        $isApprovalMatrixConfigured = $approvalMatrix->isNotEmpty();
 
-        return view('leave.create', compact('leaveTypes', 'karyawan'));
+        return view('leave.create', compact('leaveTypes', 'karyawan', 'approvalMatrix', 'isApprovalMatrixConfigured'));
     }
 
     /**
@@ -71,68 +74,75 @@ class LeaveController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $user = Auth::user();
-            $karyawan = $user->karyawan;
+        $user = Auth::user();
+        $karyawan = $user->karyawan;
 
-            $request->validate([
-                'id_jenis_cuti' => 'required|exists:mst_hrd_jenis_cuti_izin,id',
-                'tgl_awal' => 'required|date',
-                'tgl_akhir' => 'required|date|after_or_equal:tgl_awal',
-                'ket_cuti' => 'required|string',
-            ]);
-
-            $tgl_awal = Carbon::parse($request->tgl_awal);
-            $tgl_akhir = Carbon::parse($request->tgl_akhir);
-            $jumlah_hari = $tgl_awal->diffInDays($tgl_akhir) + 1;
-
-            // Entitlement Validation
-            $jenisCuti = JenisCuti::findOrFail($request->id_jenis_cuti);
-            $remaining = $this->calculateRemainingEntitlement($karyawan->id, $jenisCuti);
-
-            if ($jumlah_hari > $remaining) {
-                return redirect()->back()->withInput()->with('error', 'Leave duration exceeds remaining entitlement.');
-            }
-
-            $id_depat_karyawan = Karyawan::find(auth()->user()->karyawan->id)->id_departemen;
-            $_uuid = Str::uuid();
-            $group = 3;
-            $ifSet = HrdFunction::set_approval_cek($group, $id_depat_karyawan);
-
-            Leave::create([
-                'id_karyawan' => $karyawan->id,
-                'id_jenis_cuti' => $request->id_jenis_cuti,
-                'tgl_awal' => $request->tgl_awal,
-                'tgl_akhir' => $request->tgl_akhir,
-                'tgl_pengajuan' => now(),
-                'sts_pengajuan' => 1, // Submission
-                'jumlah_hari' => $jumlah_hari,
-                'ket_cuti' => $request->ket_cuti,
-                'id_user' => $user->id,
-                'id_departemen' => $id_depat_karyawan,
-                'approval_key' => $_uuid,
-                'current_approval_id' => HrdFunction::set_approval_get_first($group, $id_depat_karyawan),
-                'is_draft' => 1 //pengajuan masih bisa diedit
-            ]);
-            $arr_appr =  HrdFunction::set_approval_new($group, $id_depat_karyawan);
-            foreach($arr_appr as $appr)
-            {
-                $approval_active=0;
-                if($appr['approval_level']==1) {
-                    $approval_active = 1;
-                }
-                Approval::create([
-                    'approval_by_employee' => $appr['approval_by_employee'],
-                    'approval_level' => $appr['approval_level'],
-                    'approval_key' => $_uuid,
-                    'approval_group' => $group, //Pengajuan Cuti
-                    'approval_active' => $approval_active
-                ]);
-            }
-            return redirect()->route('leave.index')->with('success', 'Leave application submitted successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to store leave request.');
+        if (!$karyawan) {
+            return redirect()->back()->withInput()->with('error', 'Data karyawan tidak ditemukan.');
         }
+
+        $request->validate([
+            'id_jenis_cuti' => 'required|exists:mst_hrd_jenis_cuti_izin,id',
+            'tgl_awal' => 'required|date',
+            'tgl_akhir' => 'required|date|after_or_equal:tgl_awal',
+            'ket_cuti' => 'required|string',
+        ]);
+
+        $tgl_awal = Carbon::parse($request->tgl_awal);
+        $tgl_akhir = Carbon::parse($request->tgl_akhir);
+        $jumlah_hari = $tgl_awal->diffInDays($tgl_akhir) + 1;
+
+        $jenisCuti = JenisCuti::findOrFail($request->id_jenis_cuti);
+        $remaining = $this->calculateRemainingEntitlement($karyawan->id, $jenisCuti);
+
+        if ($jumlah_hari > $remaining) {
+            return redirect()->back()->withInput()->with('error', 'Durasi cuti melebihi sisa hak cuti yang tersedia.');
+        }
+
+        $id_depat_karyawan = $karyawan->id_departemen;
+        $_uuid = Str::uuid();
+        $group = 3;
+        $ifSet = HrdFunction::set_approval_cek($group, $id_depat_karyawan);
+
+        if ($ifSet <= 0) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Matriks persetujuan pengajuan cuti belum diatur. Silakan hubungi HRD/Administrator.');
+        }
+
+        Leave::create([
+            'id_karyawan' => $karyawan->id,
+            'id_jenis_cuti' => $request->id_jenis_cuti,
+            'tgl_awal' => $request->tgl_awal,
+            'tgl_akhir' => $request->tgl_akhir,
+            'tgl_pengajuan' => now(),
+            'sts_pengajuan' => 1,
+            'jumlah_hari' => $jumlah_hari,
+            'ket_cuti' => $request->ket_cuti,
+            'id_user' => $user->id,
+            'id_departemen' => $id_depat_karyawan,
+            'approval_key' => $_uuid,
+            'current_approval_id' => HrdFunction::set_approval_get_first($group, $id_depat_karyawan),
+            'is_draft' => 1
+        ]);
+
+        $arr_appr = HrdFunction::set_approval_new($group, $id_depat_karyawan);
+        foreach ($arr_appr as $appr) {
+            $approval_active = 0;
+            if ($appr['approval_level'] == 1) {
+                $approval_active = 1;
+            }
+
+            Approval::create([
+                'approval_by_employee' => $appr['approval_by_employee'],
+                'approval_level' => $appr['approval_level'],
+                'approval_key' => $_uuid,
+                'approval_group' => $group,
+                'approval_active' => $approval_active
+            ]);
+        }
+
+        return redirect()->route('leave.index')->with('success', 'Pengajuan cuti berhasil dikirim.');
     }
 
     /**

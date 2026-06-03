@@ -6,6 +6,7 @@ use App\Models\TrainingHead;
 use App\Models\TrainingDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class TrainingController extends Controller
 {
@@ -103,8 +104,19 @@ class TrainingController extends Controller
 
             $evidenceUrl = null;
             $isImage = false;
-            if ($detail->evidence_pasca && file_exists(public_path($detail->evidence_pasca))) {
-                $evidenceUrl = asset($detail->evidence_pasca);
+            if (!empty($detail->evidence_pasca)) {
+                // Prefer storage/app/public path for new uploads.
+                $storagePath = 'training_evidence/' . $detail->evidence_pasca;
+
+                if (Storage::disk('public')->exists($storagePath)) {
+                    $evidenceUrl = Storage::url($storagePath);
+                } elseif (Storage::disk('public')->exists($detail->evidence_pasca)) {
+                    $evidenceUrl = Storage::url($detail->evidence_pasca);
+                } elseif (file_exists(public_path($detail->evidence_pasca))) {
+                    // Backward compatibility for old files saved under public/.
+                    $evidenceUrl = asset($detail->evidence_pasca);
+                }
+
                 $ext = strtolower(pathinfo($detail->evidence_pasca, PATHINFO_EXTENSION));
                 $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
             }
@@ -148,12 +160,11 @@ class TrainingController extends Controller
             if ($request->hasFile('evidence_pasca')) {
                 $file = $request->file('evidence_pasca');
                 $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-                $destinationPath = public_path('uploads/training_evidence');
-                if (!file_exists($destinationPath)) {
-                    mkdir($destinationPath, 0755, true);
+                if (!Storage::disk('public')->exists('training_evidence')) {
+                    Storage::disk('public')->makeDirectory('training_evidence');
                 }
-                $file->move($destinationPath, $filename);
-                $detail->evidence_pasca = 'uploads/training_evidence/' . $filename;
+                $storedPath = $file->storeAs('training_evidence', $filename, 'public');
+                $detail->evidence_pasca = basename($storedPath);
             }
 
             $detail->save();
