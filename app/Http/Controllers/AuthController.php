@@ -4,46 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 class AuthController extends Controller
 {
     /**
-     * Show the login form.
-     *
-     * @return \Illuminate\View\View
+     * Login lokal NIK+password dinonaktifkan — autentikasi dilakukan via SSO SSB
+     * (lihat App\Http\Controllers\Auth\SsbSsoController). Method showLoginForm()
+     * dan login() sengaja dihapus agar tidak ada jalur bypass SSO.
      */
-    public function showLoginForm()
-    {
-        return view('login');
-    }
-
-    /**
-     * Handle a login request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'nik' => ['required', 'string'],
-            'password' => ['required'],
-        ]);
-
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-
-            return redirect()->intended('index');
-        }
-
-        return back()->withErrors([
-            'nik' => 'The provided credentials do not match our records.',
-        ])->onlyInput('nik');
-    }
 
     /**
      * Log the user out of the application.
+     *
+     * Single Logout: setelah membersihkan session lokal, arahkan browser ke
+     * endpoint SLO IdP (GET /sso/logout) agar session SSB ikut berakhir + token
+     * di-revoke, lalu IdP redirect balik ke halaman login app ini. Dengan begitu
+     * "Masuk dengan SSO" berikutnya selalu minta NIK lagi (bisa ganti user).
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
@@ -56,7 +32,11 @@ class AuthController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        $base = rtrim((string) config('services.ssb.base_url'), '/');
+        $return = route('login') . '?logout=1';
+        $ssoLogout = $base . '/sso/logout?redirect=' . urlencode($return);
+
+        return redirect()->away($ssoLogout);
     }
 
     /**

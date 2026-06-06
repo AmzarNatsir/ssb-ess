@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'must_change_password' => \App\Http\Middleware\CheckMustChangePassword::class,
             'api.token'            => \App\Http\Middleware\ApiTokenAuth::class,
         ]);
+
+        // SSO-only: guest yang belum login dipaksa ke Identity Provider SSB.
+        $middleware->redirectGuestsTo(fn () => route('ssb.redirect'));
     })
     ->withExceptions(function (): void {
         //

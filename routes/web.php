@@ -2,12 +2,21 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\SsbSsoController;
 use App\Http\Controllers\ProfileController;
 
+// SSO (SSB sebagai Identity Provider) — satu-satunya jalur login
+Route::get('/auth/ssb/redirect', [SsbSsoController::class, 'redirectToProvider'])->name('ssb.redirect');
+Route::get('/auth/ssb/callback', [SsbSsoController::class, 'handleCallback'])->name('ssb.callback');
+// Masuk sebagai pengguna lain (force re-auth tanpa logout manual)
+Route::get('/auth/ssb/switch', [SsbSsoController::class, 'switchUser'])->name('ssb.switch');
+
 // Authentication Routes
+// Login lokal NIK+password dinonaktifkan. GET /login menampilkan halaman
+// "Masuk dengan SSB" (dipakai sbg landing setelah logout). Akses ke route
+// terproteksi tetap auto-redirect ke SSB via redirectGuestsTo (bootstrap/app.php).
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/login', fn () => view('login'))->name('login');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])

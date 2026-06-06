@@ -160,6 +160,12 @@
                     </a>
 
                     <!-- Item-->
+                    <a href="{{ route('ssb.switch') }}" class="dropdown-item">
+                        <i class="ti ti-users me-1 align-middle"></i>
+                        <span class="align-middle">Masuk sebagai pengguna lain</span>
+                    </a>
+
+                    <!-- Item-->
                     <div class="pt-2 mt-2 border-top">
                         <a href="javascript:void(0);" class="dropdown-item text-danger"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

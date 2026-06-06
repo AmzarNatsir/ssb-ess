@@ -40,4 +40,11 @@ return [
         'token' => env('TOKEN_MEDIA'),
     ],
 
+    'ssb' => [
+        'base_url'      => env('SSB_BASE_URL', 'http://localhost:8088/others/ssb-project/public'),
+        'client_id'     => env('SSB_CLIENT_ID'),
+        'client_secret' => env('SSB_CLIENT_SECRET'), // kosong utk client public/PKCE
+        'redirect'      => env('SSB_REDIRECT_URI'),
+    ],
+
 ];
