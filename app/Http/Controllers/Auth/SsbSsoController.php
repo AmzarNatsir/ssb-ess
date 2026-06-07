@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -20,6 +21,15 @@ use Illuminate\Support\Str;
  */
 class SsbSsoController extends Controller
 {
+    /**
+     * Bangun URL absolut ke endpoint SSB, aman dari trailing slash pada
+     * SSB_BASE_URL (mencegah "//oauth/authorize" yang bisa 404 di server).
+     */
+    protected function ssbUrl(string $path): string
+    {
+        return rtrim((string) config('services.ssb.base_url'), '/') . '/' . ltrim($path, '/');
+    }
+
     /**
      * Mulai login: arahkan ke SSB /oauth/authorize dengan PKCE + state.
      */
@@ -42,7 +52,7 @@ class SsbSsoController extends Controller
             'code_challenge_method' => 'S256',
         ]);
 
-        return redirect(config('services.ssb.base_url') . '/oauth/authorize?' . $query);
+        return redirect($this->ssbUrl('/oauth/authorize') . '?' . $query);
     }
 
     /**
@@ -53,6 +63,12 @@ class SsbSsoController extends Controller
         // 1) Validasi state (anti-CSRF)
         $expectedState = $request->session()->pull('ssb_state');
         if (! $expectedState || ! hash_equals($expectedState, (string) $request->input('state'))) {
+            Log::warning('SSO state tidak valid', [
+                'reason'        => $expectedState ? 'mismatch' : 'session_kosong',
+                'has_expected'  => (bool) $expectedState,
+                'session_id'    => $request->session()->getId(),
+                'has_cookie'    => $request->hasCookie(config('session.cookie')),
+            ]);
             abort(403, 'State tidak valid.');
         }
 
@@ -75,9 +91,16 @@ class SsbSsoController extends Controller
             $payload['client_secret'] = $secret;
         }
 
-        $tokenResp = Http::asForm()->post(config('services.ssb.base_url') . '/oauth/token', $payload);
+        $tokenResp = Http::asForm()->post($this->ssbUrl('/oauth/token'), $payload);
 
         if ($tokenResp->failed()) {
+            Log::warning('SSO token exchange gagal', [
+                'status'   => $tokenResp->status(),
+                'body'     => $tokenResp->body(),
+                'endpoint' => $this->ssbUrl('/oauth/token'),
+                'client_id'=> config('services.ssb.client_id'),
+                'redirect' => config('services.ssb.redirect'),
+            ]);
             abort(401, 'Gagal menukar token: ' . $tokenResp->body());
         }
 
@@ -90,11 +113,16 @@ class SsbSsoController extends Controller
         // 3) Ambil identitas (tanpa role) dari SSB
         $userResp = Http::withToken($accessToken)
             ->acceptJson()
-            ->get(config('services.ssb.base_url') . '/api/oauth/userinfo');
+            ->get($this->ssbUrl('/api/oauth/userinfo'));
         if ($userResp->status() === 403) {
             abort(403, 'Anda tidak memiliki akses ke aplikasi ini. Hubungi administrator.');
         }
         if ($userResp->failed()) {
+            Log::warning('SSO userinfo gagal', [
+                'status'   => $userResp->status(),
+                'body'     => $userResp->body(),
+                'endpoint' => $this->ssbUrl('/api/oauth/userinfo'),
+            ]);
             abort(401, 'Gagal mengambil userinfo dari SSB.');
         }
 
