@@ -41,13 +41,6 @@ class SsbSsoController extends Controller
 
         $request->session()->put('ssb_code_verifier', $verifier);
         $request->session()->put('ssb_state', $state);
-        $request->session()->save();
-
-        Log::warning('SSO redirect start', [
-            'session_id'   => $request->session()->getId(),
-            'state_prefix' => substr($state, 0, 8),
-            'has_cookie'   => $request->hasCookie(config('session.cookie')),
-        ]);
 
         $query = http_build_query([
             'client_id'             => config('services.ssb.client_id'),
@@ -71,12 +64,7 @@ class SsbSsoController extends Controller
         $expectedState = $request->session()->pull('ssb_state');
         if (! $expectedState || ! hash_equals($expectedState, (string) $request->input('state'))) {
             Log::warning('SSO state tidak valid', [
-                'reason'         => $expectedState ? 'mismatch' : 'session_kosong',
-                'has_expected'   => (bool) $expectedState,
-                'session_id'     => $request->session()->getId(),
-                'has_cookie'     => $request->hasCookie(config('session.cookie')),
-                'state_in'       => substr((string) $request->input('state'), 0, 8),
-                'all_session_keys' => array_keys($request->session()->all()),
+                'reason' => $expectedState ? 'mismatch' : 'session_kosong',
             ]);
             abort(403, 'State tidak valid.');
         }
