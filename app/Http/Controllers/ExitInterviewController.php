@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use App\Models\Resign;
 use App\Models\ExitInterviews;
 use App\Models\Approval;
-use App\Helpers\Hrdfunction;
+use App\Helpers\HrdFunction;
 
 class ExitInterviewController extends Controller
 {
@@ -34,7 +34,7 @@ class ExitInterviewController extends Controller
         }
 
         $group = 16;
-        $isApprovalMatrixConfigured = Hrdfunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
+        $isApprovalMatrixConfigured = HrdFunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
 
         return view('exit_interview.create', compact('resign', 'isApprovalMatrixConfigured'));
     }
@@ -54,7 +54,7 @@ class ExitInterviewController extends Controller
         $id_depat_karyawan = $karyawan->id_departemen;
         $_uuid = Str::uuid();
         $group = 16; // Group ID for Exit Interview
-        $ifSet = Hrdfunction::set_approval_cek($group, $id_depat_karyawan);
+        $ifSet = HrdFunction::set_approval_cek($group, $id_depat_karyawan);
 
         if($ifSet == 0) {
             return redirect()->back()->with('error', 'Data approval belum diatur (Matriks Persetujuan). Hubungi HRD.');
@@ -116,12 +116,12 @@ class ExitInterviewController extends Controller
                 'jawaban_10'          => $request->jawaban_10,
                 'approval_key'        => $_uuid,
                 'create_by'           => $user->id,
-                'current_approval_id' => Hrdfunction::set_approval_get_first($group, $id_depat_karyawan),
+                'current_approval_id' => HrdFunction::set_approval_get_first($group, $id_depat_karyawan),
                 'is_draft'            => 1,
                 'sts_pengajuan'       => 1,
             ]);
 
-            $arr_appr = Hrdfunction::set_approval_new($group, $id_depat_karyawan);
+            $arr_appr = HrdFunction::set_approval_new($group, $id_depat_karyawan);
             foreach($arr_appr as $appr)
             {
                 $approval_active = 0;

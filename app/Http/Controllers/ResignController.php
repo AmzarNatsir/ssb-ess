@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Models\Resign;
 use App\Models\Approval;
-use App\Helpers\Hrdfunction;
+use App\Helpers\HrdFunction;
 
 class ResignController extends Controller
 {
@@ -48,7 +48,7 @@ class ResignController extends Controller
 
         $tgl_eff_resign = Carbon::today()->addDays(30)->format('Y-m-d');
         $group = 15;
-        $isApprovalMatrixConfigured = Hrdfunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
+        $isApprovalMatrixConfigured = HrdFunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
 
         return view('resign.create', compact('tgl_eff_resign', 'isApprovalMatrixConfigured'));
     }
@@ -61,7 +61,7 @@ class ResignController extends Controller
         $id_depat_karyawan = $karyawan->id_departemen;
         $_uuid = Str::uuid();
         $group = 15; // Group ID for Resign
-        $ifSet = Hrdfunction::set_approval_cek($group, $id_depat_karyawan);
+        $ifSet = HrdFunction::set_approval_cek($group, $id_depat_karyawan);
 
         if($ifSet == 0) {
             return redirect()->back()->with('error', 'Data approval belum diatur (Matriks Persetujuan). Hubungi HRD.');
@@ -95,13 +95,13 @@ class ResignController extends Controller
                 'alasan_resign'       => $request->alasan_resign,
                 'approval_key'        => $_uuid,
                 'create_by'           => $user->id,
-                'current_approval_id' => Hrdfunction::set_approval_get_first($group, $id_depat_karyawan),
+                'current_approval_id' => HrdFunction::set_approval_get_first($group, $id_depat_karyawan),
                 'is_draft'            => 1,
                 'sts_pengajuan'       => 1,
                 'file_surat_resign'   => $filePath,
             ]);
 
-            $arr_appr = Hrdfunction::set_approval_new($group, $id_depat_karyawan);
+            $arr_appr = HrdFunction::set_approval_new($group, $id_depat_karyawan);
             foreach($arr_appr as $appr)
             {
                 $approval_active = 0;

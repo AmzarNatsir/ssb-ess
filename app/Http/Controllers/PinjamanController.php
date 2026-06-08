@@ -7,7 +7,7 @@ use App\Models\PinjamanKaryawanDokumen;
 use App\Models\PinjamanKaryawanMutasi;
 use App\Models\Approval;
 use App\Models\Karyawan;
-use App\Helpers\Hrdfunction;
+use App\Helpers\HrdFunction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -67,7 +67,7 @@ class PinjamanController extends Controller
         $maxPkk = $gajiPokok * 0.35;
 
         $group = 13; // group approval pinjaman
-        $isApprovalMatrixConfigured = Hrdfunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
+        $isApprovalMatrixConfigured = HrdFunction::set_approval_cek($group, $karyawan->id_departemen) > 0;
 
         return view('pinjaman.create', compact('karyawan', 'gajiPokok', 'tunjangan', 'maxPanjar', 'maxPkk', 'isApprovalMatrixConfigured'));
     }
@@ -80,7 +80,7 @@ class PinjamanController extends Controller
         $id_depat_karyawan = Karyawan::find(auth()->user()->karyawan->id)->id_departemen;
         $_uuid = Str::uuid();
         $group = 13; // group approval pinjaman
-        $ifSet = Hrdfunction::set_approval_cek($group, $id_depat_karyawan);
+        $ifSet = HrdFunction::set_approval_cek($group, $id_depat_karyawan);
         if($ifSet == 0)
         {
             return redirect()->back()->with('error', 'Data approval belum diatur (Matriks Persetujuan). Hubungi HRD.');
@@ -158,7 +158,7 @@ class PinjamanController extends Controller
             }
 
             //set tgl jatuh tempo
-            Hrdfunction::generate_duedate_pinjaman_karyawan($pinjaman->id, date('Y-m-d'));
+            HrdFunction::generate_duedate_pinjaman_karyawan($pinjaman->id, date('Y-m-d'));
 
             // 3. Upload documents (PKK only)
             if ($kategori === 2 && $request->hasFile('dokumen')) {
@@ -181,7 +181,7 @@ class PinjamanController extends Controller
                 }
             }
 
-            $arr_appr =  Hrdfunction::set_approval_new($group, $id_depat_karyawan);
+            $arr_appr =  HrdFunction::set_approval_new($group, $id_depat_karyawan);
             foreach($arr_appr as $appr)
             {
                 $approval_active=0;
