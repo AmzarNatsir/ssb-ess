@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\ExitInterviews;
 use App\Models\Leave;
+use App\Models\NotificationReadHistory;
 use App\Models\Overtime;
 use App\Models\Permission;
 use App\Models\PinjamanKaryawan;
@@ -13,9 +14,6 @@ use Illuminate\Support\Facades\Auth;
 
 class ProgressNotificationService
 {
-    private const SESSION_KEY_PREFIX = 'progress_notif_read_until_user_';
-    private const SESSION_READ_ITEMS_KEY_PREFIX = 'progress_notif_read_items_user_';
-
     public static function getForCurrentUser(): array
     {
         if (!Auth::check()) {
@@ -38,21 +36,15 @@ class ProgressNotificationService
         }
 
         $userId = (int) $user->id;
-        $readItemKeys = self::readItemKeys($userId);
-        $readAllUntilRaw = session(self::sessionKey($userId));
-        $readAllUntil = $readAllUntilRaw ? Carbon::parse($readAllUntilRaw) : null;
+        $readAllUntil = self::getReadAllUntilForUser($userId);
 
         $items = collect()
-            ->merge(self::leaveItems((int) $karyawan->id, $readAllUntil))
-            ->merge(self::permissionItems((int) $karyawan->id, $readAllUntil))
-            ->merge(self::overtimeItems((int) $karyawan->id, $readAllUntil))
-            ->merge(self::loanItems((int) $karyawan->id, $readAllUntil))
-            ->merge(self::resignItems((int) $karyawan->id, $readAllUntil))
-            ->merge(self::exitInterviewItems((int) $karyawan->id, $readAllUntil))
-            ->map(function (array $item) use ($readItemKeys) {
-                $item['is_read'] = $item['is_read'] || in_array($item['key'], $readItemKeys, true);
-                return $item;
-            })
+            ->merge(self::leaveItems((int) $karyawan->id, $userId, $readAllUntil))
+            ->merge(self::permissionItems((int) $karyawan->id, $userId, $readAllUntil))
+            ->merge(self::overtimeItems((int) $karyawan->id, $userId, $readAllUntil))
+            ->merge(self::loanItems((int) $karyawan->id, $userId, $readAllUntil))
+            ->merge(self::resignItems((int) $karyawan->id, $userId, $readAllUntil))
+            ->merge(self::exitInterviewItems((int) $karyawan->id, $userId, $readAllUntil))
             ->filter(function (array $item) {
                 return !$item['is_read'];
             })
@@ -76,13 +68,22 @@ class ProgressNotificationService
         }
 
         $userId = (int) Auth::id();
-        $currentUnreadKeys = self::getForCurrentUser()['items']->pluck('key')->all();
-        $existingReadKeys = self::readItemKeys($userId);
+        $currentUnreadItems = self::getForCurrentUser()['items'];
 
-        session([
-            self::sessionReadItemsKey($userId) => array_values(array_unique(array_merge($existingReadKeys, $currentUnreadKeys))),
-            self::sessionKey($userId) => now()->toDateTimeString(),
-        ]);
+        $now = now();
+
+        foreach ($currentUnreadItems as $item) {
+            NotificationReadHistory::updateOrCreate(
+                [
+                    'user_id' => $userId,
+                    'item_module' => $item['module'],
+                    'item_id' => $item['id'],
+                ],
+                [
+                    'marked_all_at' => $now,
+                ]
+            );
+        }
     }
 
     public static function markItemAsReadForCurrentUser(string $itemKey): void
@@ -91,23 +92,33 @@ class ProgressNotificationService
             return;
         }
 
-        $userId = (int) Auth::id();
-        $readKeys = self::readItemKeys($userId);
-        if (!in_array($itemKey, $readKeys, true)) {
-            $readKeys[] = $itemKey;
+        [$module, $itemId] = self::parseItemKey($itemKey);
+        if (!$module || !$itemId) {
+            return;
         }
 
-        session([self::sessionReadItemsKey($userId) => array_values(array_unique($readKeys))]);
+        $userId = (int) Auth::id();
+
+        NotificationReadHistory::updateOrCreate(
+            [
+                'user_id' => $userId,
+                'item_module' => $module,
+                'item_id' => $itemId,
+            ],
+            [
+                'marked_at' => now(),
+            ]
+        );
     }
 
-    private static function leaveItems(int $karyawanId, ?Carbon $readAllUntil)
+    private static function leaveItems(int $karyawanId, int $userId, ?Carbon $readAllUntil)
     {
         return Leave::query()
             ->where('id_karyawan', $karyawanId)
             ->orderByDesc('updated_at')
             ->limit(20)
             ->get(['id', 'approval_key', 'updated_at', 'sts_pengajuan'])
-            ->map(function ($row) use ($readAllUntil) {
+            ->map(function ($row) use ($userId, $readAllUntil) {
                 return self::buildItem(
                     'leave',
                     (int) $row->id,
@@ -115,19 +126,20 @@ class ProgressNotificationService
                     self::statusLabel((int) ($row->sts_pengajuan ?? 0)),
                     route('leave.index'),
                     $row->updated_at,
+                    $userId,
                     $readAllUntil
                 );
             });
     }
 
-    private static function permissionItems(int $karyawanId, ?Carbon $readAllUntil)
+    private static function permissionItems(int $karyawanId, int $userId, ?Carbon $readAllUntil)
     {
         return Permission::query()
             ->where('id_karyawan', $karyawanId)
             ->orderByDesc('updated_at')
             ->limit(20)
             ->get(['id', 'approval_key', 'updated_at', 'sts_pengajuan'])
-            ->map(function ($row) use ($readAllUntil) {
+            ->map(function ($row) use ($userId, $readAllUntil) {
                 return self::buildItem(
                     'permission',
                     (int) $row->id,
@@ -135,19 +147,20 @@ class ProgressNotificationService
                     self::statusLabel((int) ($row->sts_pengajuan ?? 0)),
                     route('permission.index'),
                     $row->updated_at,
+                    $userId,
                     $readAllUntil
                 );
             });
     }
 
-    private static function overtimeItems(int $karyawanId, ?Carbon $readAllUntil)
+    private static function overtimeItems(int $karyawanId, int $userId, ?Carbon $readAllUntil)
     {
         return Overtime::query()
             ->where('id_karyawan', $karyawanId)
             ->orderByDesc('updated_at')
             ->limit(20)
             ->get(['id', 'approval_key', 'updated_at', 'status_pengajuan'])
-            ->map(function ($row) use ($readAllUntil) {
+            ->map(function ($row) use ($userId, $readAllUntil) {
                 return self::buildItem(
                     'overtime',
                     (int) $row->id,
@@ -155,19 +168,20 @@ class ProgressNotificationService
                     self::statusLabel((int) ($row->status_pengajuan ?? 0)),
                     route('overtime.index'),
                     $row->updated_at,
+                    $userId,
                     $readAllUntil
                 );
             });
     }
 
-    private static function loanItems(int $karyawanId, ?Carbon $readAllUntil)
+    private static function loanItems(int $karyawanId, int $userId, ?Carbon $readAllUntil)
     {
         return PinjamanKaryawan::query()
             ->where('id_karyawan', $karyawanId)
             ->orderByDesc('updated_at')
             ->limit(20)
             ->get(['id', 'approval_key', 'updated_at', 'status_pengajuan'])
-            ->map(function ($row) use ($readAllUntil) {
+            ->map(function ($row) use ($userId, $readAllUntil) {
                 return self::buildItem(
                     'pinjaman',
                     (int) $row->id,
@@ -175,19 +189,20 @@ class ProgressNotificationService
                     self::statusLabel((int) ($row->status_pengajuan ?? 0)),
                     route('pinjaman.index'),
                     $row->updated_at,
+                    $userId,
                     $readAllUntil
                 );
             });
     }
 
-    private static function resignItems(int $karyawanId, ?Carbon $readAllUntil)
+    private static function resignItems(int $karyawanId, int $userId, ?Carbon $readAllUntil)
     {
         return Resign::query()
             ->where('id_karyawan', $karyawanId)
             ->orderByDesc('updated_at')
             ->limit(20)
             ->get(['id', 'approval_key', 'updated_at', 'sts_pengajuan'])
-            ->map(function ($row) use ($readAllUntil) {
+            ->map(function ($row) use ($userId, $readAllUntil) {
                 return self::buildItem(
                     'resign',
                     (int) $row->id,
@@ -195,12 +210,13 @@ class ProgressNotificationService
                     self::statusLabel((int) ($row->sts_pengajuan ?? 0)),
                     route('resign.index'),
                     $row->updated_at,
+                    $userId,
                     $readAllUntil
                 );
             });
     }
 
-    private static function exitInterviewItems(int $karyawanId, ?Carbon $readAllUntil)
+    private static function exitInterviewItems(int $karyawanId, int $userId, ?Carbon $readAllUntil)
     {
         return ExitInterviews::query()
             ->whereHas('getPengajuan', function ($q) use ($karyawanId) {
@@ -209,7 +225,7 @@ class ProgressNotificationService
             ->orderByDesc('updated_at')
             ->limit(20)
             ->get(['id', 'id_head', 'approval_key', 'updated_at', 'sts_pengajuan'])
-            ->map(function ($row) use ($readAllUntil) {
+            ->map(function ($row) use ($userId, $readAllUntil) {
                 return self::buildItem(
                     'exit-interview',
                     (int) $row->id,
@@ -217,6 +233,7 @@ class ProgressNotificationService
                     self::statusLabel((int) ($row->sts_pengajuan ?? 0)),
                     route('resign.index'),
                     $row->updated_at,
+                    $userId,
                     $readAllUntil
                 );
             });
@@ -229,14 +246,16 @@ class ProgressNotificationService
         string $statusLabel,
         string $destinationUrl,
         $updatedAt,
+        int $userId,
         ?Carbon $readAllUntil
     ): array {
         $updated = $updatedAt ? Carbon::parse($updatedAt) : now();
-        $isRead = $readAllUntil ? $updated->lessThanOrEqualTo($readAllUntil) : false;
+        $isRead = self::isItemRead($userId, $module, $id, $updated, $readAllUntil);
         $itemKey = $module . '-' . $id;
 
         return [
             'key' => $itemKey,
+            'id' => $id,
             'module' => $module,
             'title' => $title,
             'status_label' => $statusLabel,
@@ -251,6 +270,49 @@ class ProgressNotificationService
         ];
     }
 
+    private static function isItemRead(int $userId, string $module, int $itemId, Carbon $updated, ?Carbon $readAllUntil): bool
+    {
+        $readHistory = NotificationReadHistory::where('user_id', $userId)
+            ->where('item_module', $module)
+            ->where('item_id', $itemId)
+            ->first();
+
+        if ($readHistory) {
+            if ($readHistory->marked_at) {
+                return true;
+            }
+            if ($readHistory->marked_all_at && $updated->lessThanOrEqualTo($readHistory->marked_all_at)) {
+                return true;
+            }
+        }
+
+        if ($readAllUntil && $updated->lessThanOrEqualTo($readAllUntil)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static function getReadAllUntilForUser(int $userId): ?Carbon
+    {
+        $latestReadAll = NotificationReadHistory::where('user_id', $userId)
+            ->whereNotNull('marked_all_at')
+            ->orderByDesc('marked_all_at')
+            ->first();
+
+        return $latestReadAll ? $latestReadAll->marked_all_at : null;
+    }
+
+    private static function parseItemKey(string $itemKey): array
+    {
+        $parts = explode('-', $itemKey, 2);
+        if (count($parts) !== 2) {
+            return [null, null];
+        }
+
+        return [$parts[0], (int) $parts[1]];
+    }
+
     private static function statusLabel(int $status): string
     {
         return match ($status) {
@@ -261,21 +323,4 @@ class ProgressNotificationService
             default => 'Diproses',
         };
     }
-
-    private static function sessionKey(int $userId): string
-    {
-        return self::SESSION_KEY_PREFIX . $userId;
-    }
-
-    private static function sessionReadItemsKey(int $userId): string
-    {
-        return self::SESSION_READ_ITEMS_KEY_PREFIX . $userId;
-    }
-
-    private static function readItemKeys(int $userId): array
-    {
-        $keys = session(self::sessionReadItemsKey($userId), []);
-        return is_array($keys) ? $keys : [];
-    }
-
 }
