@@ -55,7 +55,7 @@
                         </tr>
                         <tr>
                             <td class="text-muted">Tingkatan Sanksi</td>
-                            <td class="fw-semibold text-danger">{{ $profil->get_master_jenis_sp_diajukan->nm_jenis_sp }}</td>
+                            <td class="fw-semibold text-danger">{{ $profil->get_master_jenis_sp_diajukan?->nm_jenis_sp ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td class="text-muted">Uraian Pelanggaran</td>
