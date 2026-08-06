@@ -37,6 +37,11 @@ class Perdis extends Model
         return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
     }
 
+    public function get_diajukan_oleh(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'diajukan_oleh', 'id');
+    }
+
     public function fasilitas(): HasMany
     {
         return $this->hasMany(PerdisFasilitas::class, 'id_perdis');
