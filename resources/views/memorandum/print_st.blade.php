@@ -119,9 +119,9 @@
                     <td style="width: 34%"></td>
                 </tr>
                 <tr>
-                    <td>Dibuat oleh, </td>
+                    <td>Diajukan oleh, </td>
                     <td>bersangkutan, </td>
-                    <td>Diketahui oleh,</td>
+                    <td>Disetujui oleh,</td>
                 </tr>
                 <tr>
                     <td style="height: 70px; vertical-align: middle;">
