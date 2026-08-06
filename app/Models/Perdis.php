@@ -32,6 +32,11 @@ class Perdis extends Model
         return $this->belongsTo(Karyawan::class, 'id_karyawan');
     }
 
+    public function get_profil(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
+    }
+
     public function fasilitas(): HasMany
     {
         return $this->hasMany(PerdisFasilitas::class, 'id_perdis');
