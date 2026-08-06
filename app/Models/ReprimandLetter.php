@@ -34,4 +34,19 @@ class ReprimandLetter extends Model
     {
         return $this->belongsTo(Karyawan::class, 'current_approval_id', 'id');
     }
+
+    public function get_karyawan(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
+    }
+
+    public function get_jenis_pelanggaran(): BelongsTo
+    {
+        return $this->belongsTo(JenisPelanggaran::class, 'id_jenis_pelanggaran', 'id');
+    }
+
+    public function get_diajukan_oleh(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'create_by', 'id');
+    }
 }

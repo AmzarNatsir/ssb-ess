@@ -38,4 +38,19 @@ class WarningLetter extends Model
     {
         return $this->belongsTo(MstJenisSp::class, 'id_jenis_sp_disetujui', 'id');
     }
+
+    public function profil_karyawan(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'id_karyawan', 'id');
+    }
+
+    public function get_master_jenis_sp_diajukan(): BelongsTo
+    {
+        return $this->belongsTo(MstJenisSp::class, 'id_jenis_sp_diajukan', 'id');
+    }
+
+    public function get_diajukan_oleh(): BelongsTo
+    {
+        return $this->belongsTo(Karyawan::class, 'create_by', 'id');
+    }
 }

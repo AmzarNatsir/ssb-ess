@@ -14,6 +14,6 @@ class PengajuanPelatihanDetail extends Model
 
     public function getPelatihan()
     {
-        return $this->belongsTo(PengajuanPelatihanHeader::class, 'id_pelatihan', 'id');
+        return $this->belongsTo(TrainingHead::class, 'id_pelatihan', 'id');
     }
 }

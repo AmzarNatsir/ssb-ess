@@ -15,7 +15,7 @@
                         </ol>
                     </nav>
                 </div>
-            </div>                
+            </div>
             <!-- End Page Header -->
 
             <div class="card border-0 shadow-sm mb-4">
@@ -132,7 +132,7 @@
                         <form id="accountabilityForm" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="perdis_id" id="perdis_id">
-                            
+
                             <!-- Trip Details Section -->
                             <div class="card border-0 shadow-sm mb-4">
                                 <div class="card-header bg-white border-0 py-2">
@@ -265,7 +265,7 @@
         $('.btn-accountability').on('click', function() {
             const id = $(this).data('id');
             $('#perdis_id').val(id);
-            
+
             // Show loading state or clear previous
             $('#approval_history_body').html('<tr><td colspan="5" class="text-center py-3">Loading...</td></tr>');
             $('#facility_body').html('<tr><td colspan="6" class="text-center py-3">Loading...</td></tr>');
@@ -336,7 +336,7 @@
             const form = $('#accountabilityForm')[0];
             const formData = new FormData(form);
             const id = $('#perdis_id').val();
-            
+
             if (!id) {
                 Swal.fire('Error!', 'System error: Perdis ID missing.', 'error');
                 return;
