@@ -44,7 +44,12 @@
                                 </div>
                             @endif
 
-                            @if(!$isApprovalMatrixConfigured)
+                            @if(!$isEligible)
+                                <div class="alert alert-danger border-start border-danger border-3 mb-4" role="alert">
+                                    <div class="fw-semibold mb-1">Anda belum bisa mengajukan cuti</div>
+                                    <div class="small mb-0">Pengajuan cuti hanya dapat dilakukan oleh karyawan yang telah bekerja minimal <strong>1 tahun</strong>. Silakan hubungi HRD/Administrator untuk informasi lebih lanjut.</div>
+                                </div>
+                            @elseif(!$isApprovalMatrixConfigured)
                                 <div class="alert alert-danger border-start border-danger border-3 mb-4" role="alert">
                                     <div class="fw-semibold mb-1">Matriks Persetujuan Belum Diatur</div>
                                     <div class="small mb-0">Pengajuan cuti belum dapat dikirim karena approval matrix departemen Anda belum tersedia. Hubungi HRD/Administrator untuk pengaturan matriks approval.</div>
@@ -66,6 +71,7 @@
                                 </div>
                             @endif
 
+                            @if($isEligible)
                             <form action="{{ route('leave.store') }}" method="POST" id="leaveForm">
                                 @csrf
                                 <div class="row">
@@ -124,6 +130,7 @@
                                     <button type="submit" class="btn btn-primary" {{ !$isApprovalMatrixConfigured ? 'disabled' : '' }}>Ajukan Cuti / Submit</button>
                                 </div>
                             </form>
+                            @endif
                         </div>
                     </div>
                 </div>

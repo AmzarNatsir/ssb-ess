@@ -61,12 +61,19 @@ class LeaveController extends Controller
             return redirect()->back()->with('error', 'Employee data not found.');
         }
 
+        // Validasi masa kerja minimal 1 tahun
+        $isEligible = false;
+        if ($karyawan->tgl_masuk) {
+            $joinDate = Carbon::parse($karyawan->tgl_masuk);
+            $isEligible = $joinDate->diffInYears(Carbon::now()) >= 1;
+        }
+
         $leaveTypes = JenisCuti::leave()->where('status', 1)->get();
         $group = 3;
         $approvalMatrix = HrdFunction::set_approval_new($group, $karyawan->id_departemen)->load('getPejabat.jabatan');
         $isApprovalMatrixConfigured = $approvalMatrix->isNotEmpty();
 
-        return view('leave.create', compact('leaveTypes', 'karyawan', 'approvalMatrix', 'isApprovalMatrixConfigured'));
+        return view('leave.create', compact('leaveTypes', 'karyawan', 'approvalMatrix', 'isApprovalMatrixConfigured', 'isEligible'));
     }
 
     /**
@@ -79,6 +86,14 @@ class LeaveController extends Controller
 
         if (!$karyawan) {
             return redirect()->back()->withInput()->with('error', 'Data karyawan tidak ditemukan.');
+        }
+
+        // Validasi masa kerja minimal 1 tahun
+        if ($karyawan->tgl_masuk) {
+            $joinDate = Carbon::parse($karyawan->tgl_masuk);
+            if ($joinDate->diffInYears(Carbon::now()) < 1) {
+                return redirect()->back()->with('error', 'Anda belum bisa mengajukan cuti. Masa kerja minimal 1 tahun diperlukan.');
+            }
         }
 
         $request->validate([
